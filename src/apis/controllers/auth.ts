@@ -1,6 +1,6 @@
-import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { inject } from 'inversify';
-import { interfaces, controller, httpGet } from "inversify-express-utils";
+import { interfaces, controller, httpGet, httpPost } from "inversify-express-utils";
 
 import { IAuth } from '../../apis/services/auth';
 import TYPES from '../../inversify/TYPES';
@@ -15,9 +15,27 @@ class AuthController implements interfaces.Controller {
   }
 
   @httpGet('/')
-  private index(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  private async index(req: Request, res: Response, next: NextFunction): Promise<void> {
+
     this.authService.login();
-    res.status(200).json({status: 'ok'})
+    res.status(200).json({ status: 'ok' })
+  }
+
+  @httpPost('/login')
+  private async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+    this.authService.login();
+    res.status(200).json({ status: 'ok' })
+  }
+
+  @httpGet('/login/facebook/callback')
+  private async facebookCallBack(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const accessToken = req.query?.access_token;
+
+    res.status(200).json({
+      status: req.query?.access_token,
+      accessToken,
+    })
   }
 }
 

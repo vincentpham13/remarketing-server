@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 
+
 export interface IAuth {
   login(): void;
 }
@@ -7,6 +8,6 @@ export interface IAuth {
 @injectable()
 export class AuthService implements IAuth {
   login(): void {
-    console.log('Dop authentication here');
+    console.log('Do authentication here');
   }
 }

@@ -1,5 +1,4 @@
 import Knex, { QueryBuilder, Transaction, Config } from "knex";
-// @ts-ignore
 import knexStringCase from "knex-stringcase";
 import { cwd } from "process";
 

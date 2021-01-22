@@ -4,8 +4,8 @@ declare global {
   namespace Express {
     export type PromiseMiddleware = (req: Request, res: Response) => Promise<any>;
     export interface Request {
-      requestScope: import("../../apis/middlewares/Request").RequestScope;
-      setRequestScope(rs: import("../../apis/middlewares/Request").RequestScope): void;
+      requestScope: import("../../apis/middlewares/request").RequestScope;
+      setRequestScope(rs: import("../../apis/middlewares/request").RequestScope): void;
     }
 
     export interface Application {
