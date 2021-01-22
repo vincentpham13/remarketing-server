@@ -4,7 +4,7 @@ import { interfaces, controller, httpGet, httpPost } from "inversify-express-uti
 
 import { IAuth } from '../../apis/services/auth';
 import TYPES from '../../inversify/TYPES';
-
+import { BodyParserMiddleware } from '@/apis/middlewares';
 @controller('/auth')
 class AuthController implements interfaces.Controller {
   private authService: IAuth;
@@ -17,15 +17,27 @@ class AuthController implements interfaces.Controller {
   @httpGet('/')
   private async index(req: Request, res: Response, next: NextFunction): Promise<void> {
 
-    this.authService.login();
     res.status(200).json({ status: 'ok' })
   }
 
   @httpPost('/login')
   private async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const {
+        email,
+        password
+      } = req.body;
+      if (!email || !password) {
+        throw new Error('Missing email or password');
+      }
 
-    this.authService.login();
-    res.status(200).json({ status: 'ok' })
+      const accessToken = await this.authService.authenticate(req.requestScope, email, password);
+      res.status(200).json({
+        accessToken,
+      })
+    } catch (error) {
+      next(error);
+    }
   }
 
   @httpGet('/login/facebook/callback')

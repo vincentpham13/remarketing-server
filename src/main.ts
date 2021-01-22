@@ -2,13 +2,13 @@ import "reflect-metadata";
 import express, { Request, Response } from 'express';
 import { InversifyExpressServer } from "inversify-express-utils";
 
-import './apis/controllers/auth';
+import './apis/controllers';
 import container from './inversify/inversify.config';
 
 import {
   RequestMiddleware,
   CorsMiddleware,
-  LoggerMiddleware
+  LoggerMiddleware,
 } from './apis/middlewares';
 
 async function bootstrap() {
@@ -17,8 +17,11 @@ async function bootstrap() {
   app.use([
     RequestMiddleware,
     CorsMiddleware(),
-    LoggerMiddleware
+    LoggerMiddleware,
   ]);
+
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
 
   app.get('/healthcheck', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'Very good' });
@@ -27,7 +30,6 @@ async function bootstrap() {
   const server = new InversifyExpressServer(container, null, {
     rootPath: '/api/v1'
   }, app);
-
 
   const appConfigured = server.build();
   const serve = appConfigured.listen(process.env.PORT || 5000, () => `App running on`);
