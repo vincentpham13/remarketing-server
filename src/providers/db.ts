@@ -1,10 +1,6 @@
 import Knex, { QueryBuilder, Transaction, Config } from "knex";
 import knexStringCase from "knex-stringcase";
 import { cwd } from "process";
-
-// import { AppConfig } from "@/config";
-// import { logger } from "@/utils/logger";
-
 export interface IExecutor {
   queryBuilder: QueryBuilder;
   setTransaction(tx: Transaction): void;
@@ -66,25 +62,30 @@ export default class DB {
   }
 
   connectDb(): void {
-    const knexOptions: Config = {
-      client: "pg",
-      connection: {
-        host: 'localhost',
-        port: 5432,
-        user: 'getme',
-        password: 'getme123!@#',
-        database: 'extension',
-        ssl: false
-      },
-      searchPath: ["public"],
-      migrations: {
-        database: 'extension',
-        directory: `${cwd()}/src/migrations`,
-        extension: "ts"
-      }
-    };
-    const knexClient = Knex(knexStringCase(knexOptions));
-
-    this._connection = new Executor(knexClient);
+    try {
+      const knexOptions: Config = {
+        client: "pg",
+        connection: {
+          host: 'postgres',
+          port: 5432,
+          user: 'getme',
+          password: 'getme123!@#',
+          database: 'remarketing',
+          ssl: false
+        },
+        searchPath: ["public"],
+        migrations: {
+          database: 'extension',
+          directory: `${cwd()}/src/migrations`,
+          extension: "ts"
+        }
+      };
+      const knexClient = Knex(knexStringCase(knexOptions));
+  
+      this._connection = new Executor(knexClient);
+      console.log('done');
+    } catch (error) {
+      throw error;
+    }
   }
 }

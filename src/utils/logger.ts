@@ -21,12 +21,11 @@ const options = {
   }
 };
 
-const reformat = function(info): string {
+const reformat = function (info): string {
   const { timestamp, label, level, message, ...args } = info;
   const ts = timestamp.slice(0, 19).replace("T", " ");
-  return `${ts} [${level}]: ${label} - ${message} ${
-    Object.keys(args).length ? JSON.stringify(args, null, "") : ""
-  }`;
+  return `${ts} [${level}]: ${label} - ${message} ${Object.keys(args).length ? JSON.stringify(args, null, "") : ""
+    }`;
 };
 
 const appendTimestamp = format((info, opts) => {

@@ -1,41 +1,39 @@
 import { NextFunction, Request, Response, RequestHandler } from "express";
-import db, { Executor } from "../../providers/db";
+import db from "../../providers/db";
 import { User } from '../../models/user';
+import { RequestScope } from "@/models/request";
 
-interface Identity {
+export interface Identity {
   getID(): string;
-  getFullName(): string;
+  getName(): string;
+  getRoleID(): number;
+  getEmail(): string;
 }
 
-class UserIdentity implements Identity {
-  constructor(private user: User) {
-
-  }
-
-  getID(): string {
-    return this.user.id;
-  }
-
-  getFullName(): string {
-    return this.user.name;
-  }
-}
-
-export class RequestScope {
-
+export class UserIdentity implements Identity {
   constructor(
-    private _db: Executor,
-    private _time: Date
+    private id: string,
+    private name: string,
+    private roleId: number,
+    private email?: string,
   ) {
 
   }
 
-  get db(): Executor {
-    return this._db;
+  getID(): string {
+    return this.id;
   }
 
-  get time(): Date {
-    return this._time;
+  getName(): string {
+    return this.name;
+  }
+
+  getRoleID(): number {
+    return this.roleId;
+  }
+
+  getEmail(): string {
+    return this.email || '';
   }
 }
 

@@ -73,6 +73,7 @@ CREATE TABLE public.compaign_member (
 ALTER TABLE public.compaign_member OWNER TO postgres;
 
 
+
 --
 -- Name: order; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -258,7 +259,8 @@ CREATE TABLE public."user" (
     updated_at timestamp without time zone,
     active boolean,
     role_id smallint,
-    token text NOT NULL
+    token text,
+    password text
 );
 
 
@@ -295,8 +297,6 @@ ALTER TABLE public.user_plan OWNER TO postgres;
 --
 
 ALTER TABLE ONLY public.compaign ALTER COLUMN id SET DEFAULT nextval('public.compaign_id_seq'::regclass);
-
-
 
 
 
@@ -340,6 +340,7 @@ ALTER TABLE ONLY public.page_member ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 
+
 --
 -- Data for Name: order; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -350,6 +351,7 @@ ALTER TABLE ONLY public.page_member ALTER COLUMN id SET DEFAULT nextval('public.
 -- Data for Name: package; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO public.package (id, label, date_duration, message_amount, price, status) VALUES (1, 'Miễn phí', 15, 1000, 0, 'pending');
 
 
 --
@@ -374,12 +376,15 @@ ALTER TABLE ONLY public.page_member ALTER COLUMN id SET DEFAULT nextval('public.
 -- Data for Name: role; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO public.role (id, label) VALUES (1, 'user');
+INSERT INTO public.role (id, label) VALUES (2, 'admin');
 
 
 --
 -- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+INSERT INTO public."user" (id, name, email, created_at, updated_at, active, role_id, token, password) VALUES ('test', 'ADMIN', 'admin@gmail.com', '2021-01-22 09:08:56', NULL, true, 2, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRlc3QiLCJuYW1lIjoiQURNSU4iLCJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlhdCI6MTYxMTMyMTAyOSwiZXhwIjoxNjExNDA3NDI5fQ.MY9Ej9ci5ZKSia0XHVIQpZtnVDKthBKjSjdyPJJRcxI', '$2b$10$zonr9oiloSDhaYMW9B1m.ecPa1euoy7QHApvNhO6h/BgqsvK4M2CK');
 
 
 --
@@ -399,8 +404,6 @@ ALTER TABLE ONLY public.page_member ALTER COLUMN id SET DEFAULT nextval('public.
 --
 
 SELECT pg_catalog.setval('public.compaign_id_seq', 1, false);
-
-
 
 
 
@@ -446,6 +449,9 @@ ALTER TABLE ONLY public.compaign_member
 
 ALTER TABLE ONLY public.compaign
     ADD CONSTRAINT compaign_pk PRIMARY KEY (id);
+
+
+
 
 
 --
