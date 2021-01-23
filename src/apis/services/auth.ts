@@ -1,7 +1,6 @@
 import { inject, injectable } from 'inversify';
 import * as jwt from '@/utils/jwt';
 import bcrypt from 'bcrypt';
-import fetch from 'node-fetch';
 
 import { UserIdentity } from '@/apis/middlewares';
 
@@ -9,6 +8,8 @@ import TYPES from '@/inversify/TYPES';
 import { IUserRepo } from '../repositories/user';
 import { RequestScope } from '@/models/request';
 import { InternalServerError, Unauthorized } from '@/utils/http';
+import fb from '@/utils/fb';
+import { IFanPageRepo } from '../repositories/fanpage';
 
 export interface IAuth {
   authenticate(rs: RequestScope, email: string, password: string): Promise<any>;
@@ -19,8 +20,14 @@ export interface IAuth {
 
 @injectable()
 export class AuthService implements IAuth {
-  @inject(TYPES.UserRepo)
-  private userRepo: IUserRepo;
+  constructor(
+    @inject(TYPES.UserRepo)
+    private userRepo: IUserRepo,
+    @inject(TYPES.FanPageRepo)
+    private fanPageRepo: IFanPageRepo,
+  ) {
+
+  }
 
   async authenticate(rs: RequestScope, email: string, password: string): Promise<any> {
     try {
@@ -61,13 +68,7 @@ export class AuthService implements IAuth {
   async authenticateFB(rs: RequestScope, fbUserId: string, fbAcessToken: string): Promise<any> {
     try {
       const response = rs.db.withTransaction<any>(async () => {
-        const response = await fetch(
-          `https://graph.facebook.com/v9.0/${fbUserId}?fields=id,email,name&access_token=${fbAcessToken}`,
-          {
-            method: 'GET'
-          });
-
-        const json = await response.json();
+        const json = await fb.getUserInfo(fbUserId, fbAcessToken);
         const { data, name, id } = json;
         if (data?.error) throw new Unauthorized(data.error.message, "No data");
 
@@ -96,6 +97,29 @@ export class AuthService implements IAuth {
         const [accessToken] = jwt.createAccessToken(userResponse);
 
         await this.userRepo.updateUserToken(rs, user.id, accessToken);
+
+        // Get all fanpages from DB
+        const allFanPageIds = (await this.fanPageRepo.getAll(rs)).map(m => m.id);
+        const myFanPageIds = (await this.fanPageRepo.getAllByUserId(rs, user.id)).map(m => m.id);
+
+        // Get all fanpages from fb api
+        const fanPages = await fb.getUserFanPages(fbAcessToken);
+
+        const fanPagePromises = fanPages
+          .filter(f => !allFanPageIds.includes(f.id))
+          .map(fanpage => this.fanPageRepo.create(rs, user.id, fanpage));
+
+        if (fanPagePromises.length) {
+          Promise.resolve(fanPagePromises);
+        }
+
+        const linkUserFanPagePromises = fanPages
+          .filter(f => !myFanPageIds.includes(f.id))
+          .map(fanpage => this.fanPageRepo.link(rs, user.id, fanpage.id));
+
+        if (linkUserFanPagePromises.length) {
+          Promise.resolve(linkUserFanPagePromises);
+        }
 
         return {
           accessToken,

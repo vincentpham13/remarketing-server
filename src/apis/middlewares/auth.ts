@@ -25,19 +25,19 @@ export const AuthMiddleware: RequestHandler = async (
     const token = parts[1] || parts[0];
 
     const decodedToken = jwt.verifyJwtToken(token);
-    const { email } = decodedToken;
+    const { id } = decodedToken;
     connection.prepare();
     const existingUser = await connection.queryBuilder
       .select("*")
       .from<User>("user")
-      .where("email", email)
+      .where("id", id)
       .first();
 
     if (!existingUser) {
       throw new Error("This user does not exist in system.");
     }
 
-    if (token !== existingUser?.token) {
+    if (token != existingUser?.token) {
       throw new Error("Token was expired");
     }
 

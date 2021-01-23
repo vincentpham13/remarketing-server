@@ -4,8 +4,8 @@
   "description": "",
   "main": "main.ts",
   "scripts": {
-    "dev": "tsnd --poll --interval 600 --no-notify --watch src --ignore-watch src/migrations --ignore-watch '__tests__/*.spec.ts' --ignore-watch node_modules -r tsconfig-paths/register ./src/main.ts",
-    "dev2": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec 'ts-node' -r tsconfig-paths/register ./src/main.ts",
+    "dev": "NODE_ENV=development tsnd --poll --interval 600 --no-notify --watch src --ignore-watch src/migrations --ignore-watch '__tests__/*.spec.ts' --ignore-watch node_modules -r tsconfig-paths/register ./src/main.ts",
+    "dev2": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec 'ts-node' -r tsconfig-paths/register ./src/main.ts",
     "clean": "shx rm -rf build/*",
     "copy": "cpx 'knexfile.ts' 'build/' && cpx 'src/migrations/**' 'build/src/migrations' && cpx 'tsconfig.json' 'build/'",
     "lint": "eslint \"src/**/*.ts\" --ignore-pattern '__tests__/*.spec.ts'",
@@ -41,6 +41,7 @@
     "inversify-express-utils": "^6.3.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.16",
+    "knex-logger": "^0.1.0",
     "knex-stringcase": "^1.4.3",
     "moment-timezone": "^0.5.32",
     "morgan": "^1.10.0",

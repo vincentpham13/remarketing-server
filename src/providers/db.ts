@@ -83,7 +83,6 @@ export default class DB {
       const knexClient = Knex(knexStringCase(knexOptions));
   
       this._connection = new Executor(knexClient);
-      console.log('done');
     } catch (error) {
       throw error;
     }
