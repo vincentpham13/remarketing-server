@@ -2,6 +2,7 @@ import "reflect-metadata";
 import express, { Request, Response } from 'express';
 import { InversifyExpressServer } from "inversify-express-utils";
 import userAgent from 'express-useragent';
+import knexLogger from "knex-logger";
 
 import './apis/controllers';
 import container from './inversify/inversify.config';
@@ -29,6 +30,8 @@ async function bootstrap() {
   app.use(express.urlencoded({ extended: false }));
 
   app.use(RequestMiddleware);
+
+  app.use(knexLogger(dbInstance.connection));
 
   app.get('/healthcheck', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'Very good' });

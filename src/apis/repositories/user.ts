@@ -4,15 +4,15 @@ import { User } from '@/models/user';
 import { RequestScope } from '@/models/request';
 
 export interface IUserRepo {
-  getUserById(rs: RequestScope, id: string): Promise<User | undefined>;
-  getUserByEmail(rs: RequestScope, email: string): Promise<User | undefined>;
+  getUserById(rs: RequestScope, id: string): Promise<User>;
+  getUserByEmail(rs: RequestScope, email: string): Promise<User>;
   updateUserToken(rs: RequestScope, userId: string, token: string): Promise<User>;
   createUser(rs: RequestScope, user: User): Promise<User>;
 }
 
 @injectable()
 export class UserRepo implements IUserRepo {
-  async getUserById(rs: RequestScope, id: string): Promise<User | undefined> {
+  async getUserById(rs: RequestScope, id: string): Promise<User> {
     rs.db.prepare();
 
     const user = await rs.db.queryBuilder
@@ -21,10 +21,10 @@ export class UserRepo implements IUserRepo {
       .where("id", id)
       .first();
 
-    return user;
+    return user as User;
   }
 
-  async getUserByEmail(rs: RequestScope, email: string): Promise<User | undefined> {
+  async getUserByEmail(rs: RequestScope, email: string): Promise<User> {
     rs.db.prepare();
 
     const user = await rs.db.queryBuilder
@@ -33,7 +33,7 @@ export class UserRepo implements IUserRepo {
       .where("email", email)
       .first();
 
-    return user;
+    return user as User;
   }
 
   async updateUserToken(rs: RequestScope, userId: string, token: string): Promise<User> {
@@ -48,7 +48,6 @@ export class UserRepo implements IUserRepo {
   }
 
   async createUser(rs: RequestScope, user: User): Promise<User> {
-    rs.db.prepare();
     rs.db.prepare();
     const [inserted] = await rs.db.queryBuilder
       .insert(user, "*")
