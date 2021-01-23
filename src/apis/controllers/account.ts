@@ -16,7 +16,6 @@ class AccountController implements interfaces.Controller {
   @httpPost('/test')
   private async test(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      console.log('here');
       res.status(200).json(req.requestScope.identity)
     } catch (error) {
       next(error);

@@ -5,14 +5,17 @@ import { RequestScope } from "@/models/request";
 
 export interface Identity {
   getID(): string;
-  getFullName(): string;
+  getName(): string;
+  getRoleID(): number;
+  getEmail(): string;
 }
 
 export class UserIdentity implements Identity {
   constructor(
     private id: string,
     private name: string,
-    private email: string,
+    private roleId: number,
+    private email?: string,
   ) {
 
   }
@@ -21,8 +24,16 @@ export class UserIdentity implements Identity {
     return this.id;
   }
 
-  getFullName(): string {
+  getName(): string {
     return this.name;
+  }
+
+  getRoleID(): number {
+    return this.roleId;
+  }
+
+  getEmail(): string {
+    return this.email || '';
   }
 }
 

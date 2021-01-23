@@ -14,8 +14,8 @@ export function CorsMiddleware(): RequestHandler {
       "X-Access-Token",
       "Access-Control-Allow-Origin"
     ],
-    origin: whitelist,
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    origin: '*',
+    methods: ["GET", "POST", "PUT", "OPTIONS", "DELETE"]
   };
 
   return cors(corsOptions);

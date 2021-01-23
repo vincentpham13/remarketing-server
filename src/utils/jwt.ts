@@ -2,10 +2,18 @@ import jwt from 'jsonwebtoken';
 
 
 const SECRET = "SUPPER_SCECRET";
-export const createJwtToken = (
+export const createAccessToken = (
   user: any,
-): string => {
+): string[] => {
   const accessToken = jwt.sign(
+    user,
+    SECRET,
+    {
+      expiresIn: "1 day"
+    }
+  );
+
+  const refreshToken = jwt.sign(
     user,
     SECRET,
     {
@@ -13,15 +21,21 @@ export const createJwtToken = (
     }
   );
 
-  // const refreshToken = jwt.sign(
-  //   { user, deviceId: deviceUniqueId },
-  //   AppConfig.appSecret,
-  //   {
-  //     expiresIn: !forMagicLink ? "60 days" : "48 hours"
-  //   }
-  // );
+  return [accessToken, refreshToken];
+};
 
-  return accessToken;
+export const createRefreshToken = (
+  user: any,
+): string => {
+  const refreshToken = jwt.sign(
+    user,
+    SECRET,
+    {
+      expiresIn: "60 days"
+    }
+  );
+
+  return refreshToken;
 };
 
 export const verifyJwtToken = (token: string): any => {

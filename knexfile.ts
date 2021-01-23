@@ -4,12 +4,15 @@ module.exports = {
   development: {
     client: "postgresql",
     connection: {
-      database: "extension",
+      host: "postgres",
+      database: "remarketing",
       user: "getme",
       password: "getme123!@#"
     },
     migrations: {
-      tableName: "knex_migrations",
+      // tableName: "knex_migrations",
+      extension: "ts",
+      schemaName: "public",
       directory: './src/migrations'
     }
   },
@@ -30,3 +33,4 @@ module.exports = {
     }
   }
 };
+
