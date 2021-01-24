@@ -41,6 +41,50 @@ class FanPageController implements interfaces.Controller {
       next(new InternalServerError(error));
     }
   }
+
+  @httpPost('/:pageId/member/import')
+  private async importFanpageMember(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { pageId } = req.params;
+      if (!pageId) {
+        throw new BadRequest(null, "Invalid Page ID")
+      }
+
+      const { members } = req.body;
+      if (!members.length) {
+        throw new BadRequest(null, "Empty data")
+      }
+
+      const response = await this.fanPageService.importMembers(
+        req.requestScope,
+        pageId,
+        members
+      );
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+  @httpGet('/:pageId/members')
+  private async getFanpageMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { pageId } = req.params;
+      if (!pageId) {
+        throw new BadRequest(null, "Invalid Page ID")
+      }
+
+      const response = await this.fanPageService.getMembers(
+        req.requestScope,
+        pageId,
+      );
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
 }
 
 export default FanPageController;

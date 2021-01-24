@@ -9,12 +9,13 @@ import TYPES from '@/inversify/TYPES';
 import { IUserRepo } from '../repositories/user';
 import { RequestScope } from '@/models/request';
 import { IFanPageRepo } from '../repositories/fanpage';
-import { FanPage } from '@/models/fanpage';
+import { FanPage, Member } from '@/models/fanpage';
 
 export interface IFanPageService {
   getAll(rs: RequestScope): Promise<any[]>;
   getOne(rs: RequestScope, pageId: string): Promise<any>;
-  create(rs: RequestScope, fanpage: FanPage): Promise<FanPage>;
+  importMembers(rs: RequestScope, fanpageId: string, member: { uid: string; name: string }[]): Promise<any>;
+  getMembers(rs: RequestScope, fanpageId: string): Promise<Member[]>;
 }
 
 @injectable()
@@ -41,7 +42,29 @@ export class FanPageService implements IFanPageService {
     }
   }
 
-  async create(rs: RequestScope, fanpage: FanPage): Promise<FanPage> {
-    throw new Error('Method not implemented.');
+  async importMembers(rs: RequestScope, fanpageId: string, members: { uid: string; name: string }[]): Promise<any> {
+    try {
+      return rs.db.withTransaction(async () => {
+        const createMemberPromises = members.map(member => {
+          return this.fanPageRepo.importedMember(rs, {
+            uid: member.uid,
+            name: member.name,
+            pageId: fanpageId,
+          });
+        });
+        return await Promise.all(createMemberPromises);
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getMembers(rs: RequestScope, fanpageId: string): Promise<Member[]> {
+    try {
+      return this.fanPageRepo.getMembers(rs, fanpageId);
+
+    } catch (error) {
+      throw error;
+    }
   }
 }

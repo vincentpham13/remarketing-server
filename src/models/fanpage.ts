@@ -4,3 +4,11 @@ export interface FanPage {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface Member {
+  id?: string;
+  uid: string;
+  name: string;
+  pageId: string;
+  tags?: string[];
+}
