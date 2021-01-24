@@ -13,7 +13,7 @@
     "build:dev": "npm run prebuild && tsc && npm run copy",
     "build:staging": "npm run prebuild && tsc && npm run copy",
     "start:dev": "TS_NODE_FILES=true && TS_NODE_PROJECT='build/tsconfig.json' && node -r ts-node/register -r tsconfig-paths/register build/src/main.js",
-    "start:staging": "node -r tsconfig-paths/register src/main.js",
+    "start:staging": "NODE_ENV=production node -r tsconfig-paths/register src/main.js",
     "migration": "./node_modules/.bin/knex migrate:latest",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

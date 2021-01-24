@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 
 import { User } from '@/models/user';
 import { RequestScope } from '@/models/request';
-import { FanPage } from '@/models/fanpage';
+import { FanPage, Member } from '@/models/fanpage';
 
 export interface IFanPageRepo {
   getAll(rs: RequestScope): Promise<FanPage[]>;
@@ -10,6 +10,8 @@ export interface IFanPageRepo {
   getOneByUserId(rs: RequestScope, userId: string, pageId: string): Promise<FanPage>;
   create(rs: RequestScope, userId: string, fanpage: FanPage): Promise<FanPage>;
   link(rs: RequestScope, userId: string, fanpageId: string): Promise<void>;
+  importedMember(rs: RequestScope, member: Member): Promise<Member>;
+  getMembers(rs: RequestScope, fanpageId: string): Promise<Member[]>;
 }
 
 @injectable()
@@ -68,5 +70,23 @@ export class FanPageRepo implements IFanPageRepo {
         pageId: fanpageId,
       }, "*")
       .into("user_page");
+  }
+
+  async importedMember(rs: RequestScope, member: Member): Promise<Member> {
+    rs.db.prepare();
+
+    const [inserted] = await rs.db.queryBuilder
+      .insert(member, "*")
+      .into<Member>("page_member");
+    return inserted;
+  }
+
+  async getMembers(rs: RequestScope, fanpageId: string): Promise<Member[]> {
+    rs.db.prepare();
+
+    return await rs.db.queryBuilder
+      .select("page_member.*")
+      .from<Member>("page_member")
+      .where("pageId", fanpageId)
   }
 }
