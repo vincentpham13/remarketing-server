@@ -1,32 +1,95 @@
 import { Request, Response, NextFunction } from 'express';
-import { interfaces, controller, httpGet, httpPost } from "inversify-express-utils";
+import { interfaces, controller, httpGet, httpPost, httpPut } from "inversify-express-utils";
 
 import {
   AuthMiddleware
 } from '@/apis/middlewares';
 import { inject } from 'inversify';
 import TYPES from '@/inversify/TYPES';
-import { CampaignService } from '../services/campaign';
+import { ICampaignService } from '../services/campaign';
 import { BadRequest, InternalServerError } from '@/utils/http';
 
-@controller('/fanpages/:pageId/campaigns', AuthMiddleware)
+@controller('/campaigns', AuthMiddleware)
 class CampaignController implements interfaces.Controller {
-    constructor(
-        @inject(TYPES.CampaignService) private campaignService: CampaignService
-      ) {
-    }
+  constructor(
+    @inject(TYPES.CampaignService) private campaignService: ICampaignService
+  ) {
+  }
 
-    @httpGet('/')
-    private async getAllByPageId(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
-            const { pageId } = req.params;
-            const response = await this.campaignService.getAllByPageId(req.requestScope, pageId);
-            console.log('cc');
-            res.status(200).json(response);
-        } catch (error) {
-            next(error);
-        }
+  @httpGet('/')
+  private async getAllCampaigns(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const response = await this.campaignService.getAllCampaigns(req.requestScope);
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
     }
+  }
 
+  @httpPost('/')
+  private async createCompaign(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const {
+        name,
+        pageId,
+        totalMessages
+      } = req.body;
+      if (!name || !pageId || !totalMessages) {
+        throw new BadRequest(null, "Invalid request body");
+      }
+
+      const response = await this.campaignService.create(req.requestScope, {
+        name: name,
+        pageId: pageId,
+        totalMessages: totalMessages
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+  @httpPut('/:campaignId')
+  private async updateSuccessPart(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { campaignId } = req.params;
+      if (!campaignId) {
+        throw new BadRequest(null, "Missing param");
+      }
+
+      const {
+        success
+      } = req.body;
+      if (!success) {
+        throw new BadRequest(null, "Invalid request body");
+      }
+
+      const parsedCampaignId = parseInt(campaignId, 10);
+      const response = await this.campaignService.updateSuccessPart(req.requestScope, parsedCampaignId, success);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+  @httpPost('/:campaignId/force-complete')
+  private async forceComplete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { campaignId } = req.params;
+      if (!campaignId) {
+        throw new BadRequest(null, "Missing param");
+      }
+
+      const parsedCampaignId = parseInt(campaignId, 10);
+      const response = await this.campaignService.forceComplete(req.requestScope, parsedCampaignId);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
 }
+
 export default CampaignController;
