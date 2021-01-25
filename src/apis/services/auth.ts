@@ -14,7 +14,7 @@ import { IFanPageRepo } from '../repositories/fanpage';
 export interface IAuth {
   authenticate(rs: RequestScope, email: string, password: string): Promise<any>;
   authenticateFB(rs: RequestScope, fbUserId: string, accessToken: string): Promise<any>;
-  refreshToken(rs: RequestScope): Promise<any>;
+  refreshToken(rs: RequestScope, userId: string): Promise<any>;
   logout(rs: RequestScope): Promise<void>;
 }
 
@@ -49,12 +49,13 @@ export class AuthService implements IAuth {
           roleId: user.roleId
         };
 
-        const [accessToken] = jwt.createAccessToken(userResponse);
+        const [accessToken, refreshToken] = jwt.createAccessToken(userResponse);
 
         await this.userRepo.updateUserToken(rs, user.id, accessToken);
 
         return {
           accessToken,
+          refreshToken,
           user: userResponse,
         };
       })
@@ -94,7 +95,7 @@ export class AuthService implements IAuth {
           roleId: user.roleId
         };
 
-        const [accessToken] = jwt.createAccessToken(userResponse);
+        const [accessToken, refreshToken] = jwt.createAccessToken(userResponse);
 
         await this.userRepo.updateUserToken(rs, user.id, accessToken);
 
@@ -123,6 +124,7 @@ export class AuthService implements IAuth {
 
         return {
           accessToken,
+          refreshToken,
           user: userResponse,
         };
       })
@@ -133,10 +135,10 @@ export class AuthService implements IAuth {
     }
   }
 
-  async refreshToken(rs: RequestScope): Promise<any> {
+  async refreshToken(rs: RequestScope, userId: string): Promise<any> {
     try {
       const response = rs.db.withTransaction<any>(async () => {
-        const user = await this.userRepo.getUserById(rs, rs.identity.getID());
+        const user = await this.userRepo.getUserById(rs, userId);
         if (!user) {
           throw new Error('User not found');
         }
@@ -148,12 +150,13 @@ export class AuthService implements IAuth {
           roleId: user.roleId
         };
 
-        const [accessToken] = jwt.createAccessToken(userResponse);
+        const [accessToken, refreshToken] = jwt.createAccessToken(userResponse);
 
         await this.userRepo.updateUserToken(rs, user.id, accessToken);
 
         return {
           accessToken,
+          refreshToken,
           user: userResponse,
         };
       })

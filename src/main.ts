@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import { InversifyExpressServer } from "inversify-express-utils";
 import userAgent from 'express-useragent';
 import knexLogger from "knex-logger";
+import cookieParser from 'cookie-parser';
 
 import './apis/controllers';
 import container from './inversify/inversify.config';
@@ -21,6 +22,7 @@ async function bootstrap() {
   const dbInstance = db.getInstance();
   dbInstance.connectDb();
 
+  app.use(cookieParser('mysecret'));
   app.use(userAgent.express());
   app.use(LoggerMiddleware);
 

@@ -2,7 +2,10 @@ import { RequestHandler } from 'express';
 import cors from "cors";
 
 export function CorsMiddleware(): RequestHandler {
-  const whitelist = ["http://localhost:4000"];
+  const whitelist = [
+    "http://localhost:4000",
+    "chrome-extension://ndajmeladdbjjkaicchphpaaegonjfei",
+  ];
 
   const corsOptions: cors.CorsOptions = {
     allowedHeaders: [
@@ -12,9 +15,12 @@ export function CorsMiddleware(): RequestHandler {
       "Authorization",
       "Accept",
       "X-Access-Token",
-      "Access-Control-Allow-Origin"
+      "Access-Control-Allow-Origin",
+      "Access-Control-Allow-Credentials",
+      "Cookie"
     ],
-    origin: '*',
+    credentials: true,
+    origin: whitelist,
     methods: ["GET", "POST", "PUT", "OPTIONS", "DELETE"]
   };
 

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { inject } from 'inversify';
 import { interfaces, controller, httpGet, httpPost } from "inversify-express-utils";
+import cookieParser from 'cookie-parser';
 
 import { IAuth } from '../../apis/services/auth';
 import TYPES from '../../inversify/TYPES';
@@ -10,6 +11,7 @@ import {
   BadRequest,
   InternalServerError
 } from '@/utils/http';
+import { decodeJwtToken } from '@/utils/jwt';
 @controller('/auth')
 class AuthController implements interfaces.Controller {
   private authService: IAuth;
@@ -37,11 +39,22 @@ class AuthController implements interfaces.Controller {
       }
 
       const response = await this.authService.authenticate(req.requestScope, email, password);
+      const { refreshToken } = response;
+
+      //Set refresh token in httpOnly cookie
+      let options = {
+        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
+        // httpOnly: true,
+        signed: true
+      };
+
+      res.cookie('rt', refreshToken, options);
 
       if (!response) {
         throw new InternalServerError('Fail to login')
       }
 
+      delete response.refreshToken;
       res.status(200).json(response);
 
     } catch (error) {
@@ -49,15 +62,35 @@ class AuthController implements interfaces.Controller {
     }
   }
 
-  @httpPost('/refresh-token', AuthMiddleware)
+  @httpPost('/refresh-token')
   private async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const response = await this.authService.refreshToken(req.requestScope);
+      //Get the refresh token from cookie
+      const { rt } = req.signedCookies;
 
+      if (rt === null) {
+        throw new BadRequest(null, 'Missing rt cookie');
+      }
+
+      const decodedToken = decodeJwtToken(rt);
+
+      const response = await this.authService.refreshToken(req.requestScope, decodedToken.id);
+      const { refreshToken } = response;
+
+      //Set refresh token in httpOnly cookie
+      let options = {
+        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
+        // httpOnly: true,
+        signed: true
+      };
+
+      res.cookie('rt', refreshToken, options);
+      
       if (!response) {
         throw new InternalServerError('Fail to refresh token')
       }
 
+      delete response.refreshToken;
       res.status(200).json(response);
     } catch (error) {
       next(new InternalServerError(error, 'Fail to refresh token'));
@@ -89,7 +122,18 @@ class AuthController implements interfaces.Controller {
       }
 
       const response = await this.authService.authenticateFB(req.requestScope, fbUserId, accessToken);
+      const { refreshToken } = response;
 
+      //Set refresh token in httpOnly cookie
+      let options = {
+        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
+        // httpOnly: true,
+        signed: true
+      };
+
+      res.cookie('rt', refreshToken, options);
+
+      delete response.refreshToken;
       res.status(200).json(response);
 
     } catch (error) {
