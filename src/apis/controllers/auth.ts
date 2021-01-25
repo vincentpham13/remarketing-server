@@ -12,6 +12,13 @@ import {
   InternalServerError
 } from '@/utils/http';
 import { decodeJwtToken } from '@/utils/jwt';
+
+const options = {
+  maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
+  // httpOnly: true,
+  signed: true
+};
+
 @controller('/auth')
 class AuthController implements interfaces.Controller {
   private authService: IAuth;
@@ -42,12 +49,6 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      let options = {
-        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-        // httpOnly: true,
-        signed: true
-      };
-
       res.cookie('rt', refreshToken, options);
 
       if (!response) {
@@ -78,12 +79,6 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      let options = {
-        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-        // httpOnly: true,
-        signed: true
-      };
-
       res.cookie('rt', refreshToken, options);
       
       if (!response) {
@@ -125,12 +120,6 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      let options = {
-        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-        // httpOnly: true,
-        signed: true
-      };
-
       res.cookie('rt', refreshToken, options);
 
       delete response.refreshToken;
