@@ -44,8 +44,11 @@ export class FanPageService implements IFanPageService {
 
   async importMembers(rs: RequestScope, fanpageId: string, members: { uid: string; name: string }[]): Promise<any> {
     try {
+      const existingMemberIds = (await this.fanPageRepo.getMembers(rs, fanpageId)).map(member => member.uid);
+
       return rs.db.withTransaction(async () => {
-        const createMemberPromises = members.map(member => {
+        const createMemberPromises = members
+        .filter(member => !existingMemberIds.includes(member.uid)).map(member => {
           return this.fanPageRepo.importedMember(rs, {
             uid: member.uid,
             name: member.name,
