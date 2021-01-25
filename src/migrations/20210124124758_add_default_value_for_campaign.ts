@@ -3,9 +3,9 @@ import * as Knex from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.raw(`
-  alter table public.page_member
-	add constraint page_member_pk_2
-		unique (uid, page_id);
+  alter table public.campaign alter column total_messages set default 0;
+
+  alter table public.campaign alter column success_messages set default 0;
   `)
 }
 
