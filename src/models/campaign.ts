@@ -7,7 +7,7 @@ export interface Campaign {
   totalMessages: number;
   successMessages?: number;
   filteredBy?: string;
-  status?: string
+  status?: string;
 }
 
 export interface CampaignUpdate {
