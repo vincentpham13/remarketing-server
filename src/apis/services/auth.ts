@@ -10,7 +10,9 @@ import { RequestScope } from '@/models/request';
 import { InternalServerError, Unauthorized } from '@/utils/http';
 import fb from '@/utils/fb';
 import { IFanPageRepo } from '../repositories/fanpage';
-
+import { IPackageService } from './package';
+import { IUserPlanService } from './userPlan';
+import moment from 'moment';
 export interface IAuth {
   authenticate(rs: RequestScope, email: string, password: string): Promise<any>;
   authenticateFB(rs: RequestScope, fbUserId: string, accessToken: string): Promise<any>;
@@ -25,6 +27,10 @@ export class AuthService implements IAuth {
     private userRepo: IUserRepo,
     @inject(TYPES.FanPageRepo)
     private fanPageRepo: IFanPageRepo,
+    @inject(TYPES.PackageService)
+    private packageService: IPackageService,
+    @inject(TYPES.UserPlanService)
+    private userPlanService: IUserPlanService
   ) {
 
   }
@@ -46,7 +52,9 @@ export class AuthService implements IAuth {
           id: user.id,
           name: user.name,
           email: user.email,
-          roleId: user.roleId
+          roleId: user.roleId,
+          phone: user.phone,
+          job: user.job,
         };
 
         const [accessToken, refreshToken] = jwt.createAccessToken(userResponse);
@@ -77,7 +85,7 @@ export class AuthService implements IAuth {
           throw new InternalServerError(null, "UID does not match");
         }
 
-        let user = await this.userRepo.getUserById(rs, fbUserId);
+        let user = await this.userRepo.getUserInfoById(rs, fbUserId);
         if (!user) {
           // create new user account
 
@@ -86,13 +94,27 @@ export class AuthService implements IAuth {
             name: name,
             roleId: 1,
           })
+          const freePackage = await this.packageService.getFreePackage(rs);
+
+          //calculate a valid date
+          const validTo =  new Date();
+          validTo.setDate(validTo.getDate() + freePackage.dateDuration);
+
+          await this.userPlanService.create(rs, {
+            userId: fbUserId,
+            packageId: freePackage.id,
+            remainingMessage: freePackage.messageAmount,
+            validTo: moment().add(freePackage.dateDuration, 'days').toDate()
+          });
         }
 
         const userResponse = {
           id: user.id,
           name: user.name,
           email: user.email,
-          roleId: user.roleId
+          roleId: user.roleId,
+          phone: user.phone,
+          job: user.job,
         };
 
         const [accessToken, refreshToken] = jwt.createAccessToken(userResponse);
@@ -138,7 +160,7 @@ export class AuthService implements IAuth {
   async refreshToken(rs: RequestScope, userId: string): Promise<any> {
     try {
       const response = rs.db.withTransaction<any>(async () => {
-        const user = await this.userRepo.getUserById(rs, userId);
+        const user = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
         if (!user) {
           throw new Error('User not found');
         }

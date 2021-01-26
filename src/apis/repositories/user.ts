@@ -4,24 +4,26 @@ import { User } from '@/models/user';
 import { RequestScope } from '@/models/request';
 
 export interface IUserRepo {
-  getUserById(rs: RequestScope, id: string): Promise<User>;
+  getUserInfoById(rs: RequestScope, id: string): Promise<any>;
   getUserByEmail(rs: RequestScope, email: string): Promise<User>;
   updateUserToken(rs: RequestScope, userId: string, token: string): Promise<User>;
   createUser(rs: RequestScope, user: User): Promise<User>;
+  updateUserInfo(rs: RequestScope, user: User): Promise<User>;
 }
 
 @injectable()
 export class UserRepo implements IUserRepo {
-  async getUserById(rs: RequestScope, id: string): Promise<User> {
+  async getUserInfoById(rs: RequestScope, id: string): Promise<any> {
     rs.db.prepare();
 
     const user = await rs.db.queryBuilder
-      .select("*")
-      .from<User>("user")
-      .where("id", id)
+      .select(["u.*","upl.remaining_message","upl.valid_to","p.label", "p.message_amount"])
+      .from<User>("user as u")
+      .leftJoin("user_plan as upl", "upl.user_id", "=", "u.id")
+      .leftJoin("package as p", "p.id", "=", "upl.package_id")
+      .where("u.id", id)
       .first();
-
-    return user as User;
+    return user;
   }
 
   async getUserByEmail(rs: RequestScope, email: string): Promise<User> {
@@ -54,5 +56,15 @@ export class UserRepo implements IUserRepo {
       .into<User>("user");
 
     return inserted;
+  }
+
+  async updateUserInfo(rs: RequestScope, user: User): Promise<User>{
+    rs.db.prepare();
+    const [updated] = await rs.db.queryBuilder
+      .update(user)
+      .into<User>("user")
+      .returning("*")
+      .where("id", user.id);
+      return updated;
   }
 }
