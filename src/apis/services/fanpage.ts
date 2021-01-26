@@ -10,18 +10,23 @@ import { IUserRepo } from '../repositories/user';
 import { RequestScope } from '@/models/request';
 import { IFanPageRepo } from '../repositories/fanpage';
 import { FanPage, Member } from '@/models/fanpage';
+import { Campaign } from '@/models/campaign';
+import { ICampaignRepo } from '../repositories/campaign';
 
 export interface IFanPageService {
   getAll(rs: RequestScope): Promise<any[]>;
   getOne(rs: RequestScope, pageId: string): Promise<any>;
   importMembers(rs: RequestScope, fanpageId: string, member: { uid: string; name: string }[]): Promise<any>;
   getMembers(rs: RequestScope, fanpageId: string): Promise<Member[]>;
+  getCampaigns(rs: RequestScope, fanpageId: string): Promise<Campaign[]>;
 }
 
 @injectable()
 export class FanPageService implements IFanPageService {
   @inject(TYPES.FanPageRepo)
   private fanPageRepo: IFanPageRepo;
+  @inject(TYPES.CampaignRepo)
+  private campaignRepo: ICampaignRepo;
 
 
   async getAll(rs: RequestScope): Promise<any[]> {
@@ -66,6 +71,14 @@ export class FanPageService implements IFanPageService {
     try {
       return this.fanPageRepo.getMembers(rs, fanpageId);
 
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCampaigns(rs: RequestScope, fanpageId: string): Promise<Campaign[]> {
+    try {
+      return this.campaignRepo.getAllByPageId(rs, rs.identity.getID(), fanpageId);
     } catch (error) {
       throw error;
     }

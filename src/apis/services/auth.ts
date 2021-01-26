@@ -10,9 +10,9 @@ import { RequestScope } from '@/models/request';
 import { InternalServerError, Unauthorized } from '@/utils/http';
 import fb from '@/utils/fb';
 import { IFanPageRepo } from '../repositories/fanpage';
-import { IPackageService } from './package';
-import { IUserPlanService } from './userPlan';
 import moment from 'moment';
+import { IPackageRepo } from '../repositories/package';
+import { Package } from '@/enums/package';
 export interface IAuth {
   authenticate(rs: RequestScope, email: string, password: string): Promise<any>;
   authenticateFB(rs: RequestScope, fbUserId: string, accessToken: string): Promise<any>;
@@ -27,10 +27,8 @@ export class AuthService implements IAuth {
     private userRepo: IUserRepo,
     @inject(TYPES.FanPageRepo)
     private fanPageRepo: IFanPageRepo,
-    @inject(TYPES.PackageService)
-    private packageService: IPackageService,
-    @inject(TYPES.UserPlanService)
-    private userPlanService: IUserPlanService
+    @inject(TYPES.PackageRepo)
+    private packageRepo: IPackageRepo,
   ) {
 
   }
@@ -94,16 +92,17 @@ export class AuthService implements IAuth {
             name: name,
             roleId: 1,
           })
-          const freePackage = await this.packageService.getFreePackage(rs);
+          const freePackage = await this.packageRepo.getPackageById(rs, Package.Free);
 
-          //calculate a valid date
-          const validTo =  new Date();
-          validTo.setDate(validTo.getDate() + freePackage.dateDuration);
+          if (!freePackage) {
+            throw new InternalServerError(null, "Free package not exist");
+          }
 
-          await this.userPlanService.create(rs, {
+          await this.userRepo.createUserPlan(rs, {
             userId: fbUserId,
             packageId: freePackage.id,
-            remainingMessage: freePackage.messageAmount,
+            totalMessages: freePackage.messageAmount,
+            successMessages: 0,
             validTo: moment().add(freePackage.dateDuration, 'days').toDate()
           });
         }
