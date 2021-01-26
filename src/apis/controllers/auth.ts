@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, CookieOptions } from 'express';
 import { inject } from 'inversify';
 import { interfaces, controller, httpGet, httpPost } from "inversify-express-utils";
 import cookieParser from 'cookie-parser';
@@ -13,9 +13,10 @@ import {
 } from '@/utils/http';
 import { decodeJwtToken } from '@/utils/jwt';
 
-const options = {
+const options: CookieOptions = {
   maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-  // httpOnly: true,
+  sameSite: 'none',
+  // secure: true,
   signed: true
 };
 
@@ -79,11 +80,11 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      res.cookie('rt', refreshToken, options);
+      // res.cookie('rt', refreshToken, options);
       
-      if (!response) {
-        throw new InternalServerError('Fail to refresh token')
-      }
+      // if (!response) {
+      //   throw new InternalServerError('Fail to refresh token')
+      // }
 
       delete response.refreshToken;
       res.status(200).json(response);
