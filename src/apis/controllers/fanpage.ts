@@ -85,6 +85,25 @@ class FanPageController implements interfaces.Controller {
       next(new InternalServerError(error));
     }
   }
+
+  @httpGet('/:pageId/campaigns')
+  private async getFanpageCampaigns(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { pageId } = req.params;
+      if (!pageId) {
+        throw new BadRequest(null, "Invalid Page ID")
+      }
+
+      const response = await this.fanPageService.getCampaigns(
+        req.requestScope,
+        pageId,
+      );
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
 }
 
 export default FanPageController;
