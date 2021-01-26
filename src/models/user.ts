@@ -8,3 +8,11 @@ export interface User {
   roleId?: number;
   token?: string;
 }
+
+export interface UserPlan {
+  userId: string;
+  packageId: number;
+  totalMessages: number;
+  successMessages: number;
+  validTo: Date;
+}
