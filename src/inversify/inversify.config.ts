@@ -15,8 +15,6 @@ import { IUserRepo,UserRepo } from '@/apis/repositories/user';
 import { IUserService, UserService } from '@/apis/services/user';
 import { IPackageRepo, PackageRepo } from '@/apis/repositories/package';
 import { IPackageService, PackageService } from '@/apis/services/package';
-import { IUserPlanRepo, UserPlanRepo } from '@/apis/repositories/userPlan';
-import { IUserPlanService, UserPlanService } from '@/apis/services/userPlan';
 
 const container = new Container();
 
@@ -38,9 +36,5 @@ container.bind<IUserService>(TYPES.UserService).to(UserService).inSingletonScope
 // package
 container.bind<IPackageRepo>(TYPES.PackageRepo).to(PackageRepo).inSingletonScope();
 container.bind<IPackageService>(TYPES.PackageService).to(PackageService).inSingletonScope();
-
-// user plan
-container.bind<IUserPlanRepo>(TYPES.UserPlanRepo).to(UserPlanRepo).inSingletonScope();
-container.bind<IUserPlanService>(TYPES.UserPlanService).to(UserPlanService).inSingletonScope();
 
 export default container;

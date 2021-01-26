@@ -4,7 +4,7 @@ import { injectable } from 'inversify';
  
 export interface IPackageRepo {
     getAllPackage(rs: RequestScope): Promise<Package[]>;
-    getFreePackage(rs: RequestScope): Promise<Package>;
+    getPackageById(rs: RequestScope, packageId: number): Promise<Package>;
 
 }
 
@@ -18,12 +18,12 @@ export class PackageRepo implements IPackageRepo{
         return packages;
     }
 
-    async getFreePackage(rs: RequestScope): Promise<Package>{
+    async getPackageById(rs: RequestScope, packageId: number): Promise<Package>{
         rs.db.prepare();
         const freePackage = await rs.db.queryBuilder
             .select(["package.*"])
             .from<Package>("package")
-            .where("id", 1)
+            .where("id", packageId)
             .first();
         return freePackage;
     }

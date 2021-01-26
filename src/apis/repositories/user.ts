@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 
-import { User } from '@/models/user';
+import { User, UserPlan } from '@/models/user';
 import { RequestScope } from '@/models/request';
 
 export interface IUserRepo {
@@ -9,6 +9,9 @@ export interface IUserRepo {
   updateUserToken(rs: RequestScope, userId: string, token: string): Promise<User>;
   createUser(rs: RequestScope, user: User): Promise<User>;
   updateUserInfo(rs: RequestScope, user: User): Promise<User>;
+
+  getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]>;
+  createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan>;
 }
 
 @injectable()
@@ -17,7 +20,19 @@ export class UserRepo implements IUserRepo {
     rs.db.prepare();
 
     const user = await rs.db.queryBuilder
-      .select(["u.*","upl.remaining_message","upl.valid_to","p.label", "p.message_amount"])
+      .select([
+        "u.id",
+        "u.name",
+        "u.email",
+        "u.phone",
+        "u.role_id",
+        "u.job",
+        "upl.total_messages",
+        "upl.success_messages",
+        "upl.valid_to",
+        "p.label", 
+        "p.message_amount",
+      ])
       .from<User>("user as u")
       .leftJoin("user_plan as upl", "upl.user_id", "=", "u.id")
       .leftJoin("package as p", "p.id", "=", "upl.package_id")
@@ -66,5 +81,22 @@ export class UserRepo implements IUserRepo {
       .returning("*")
       .where("id", user.id);
       return updated;
+  }
+
+  async getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]>{
+    rs.db.prepare();
+    const userPlans = await rs.db.queryBuilder
+        .select(["user_plan.*"])
+        .from<UserPlan>("user_plan")
+        .where("user_plan.user_id", userId);
+    return userPlans;
+  }
+
+  async createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan>{
+      rs.db.prepare();
+      const [inserted] = await rs.db.queryBuilder
+          .insert(userPlan,"*")
+          .into<UserPlan>("user_plan");
+      return inserted;
   }
 }
