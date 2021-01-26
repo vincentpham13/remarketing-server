@@ -6,7 +6,7 @@ export function CorsMiddleware(): RequestHandler {
     "http://localhost:4000",
     "https://localhost:3000",
     "https://app.hana.ai",
-    "chrome-extension://ndajmeladdbjjkaicchphpaaegonjfei",
+    /chrome-extension:\/\/[\w]*/,
   ];
 
   const corsOptions: cors.CorsOptions = {
