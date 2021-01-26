@@ -4,6 +4,7 @@ import cors from "cors";
 export function CorsMiddleware(): RequestHandler {
   const whitelist = [
     "http://localhost:4000",
+    "https://app.hana.ai",
     "chrome-extension://ndajmeladdbjjkaicchphpaaegonjfei",
   ];
 

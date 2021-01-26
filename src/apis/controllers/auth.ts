@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, CookieOptions } from 'express';
 import { inject } from 'inversify';
 import { interfaces, controller, httpGet, httpPost } from "inversify-express-utils";
 import cookieParser from 'cookie-parser';
@@ -12,6 +12,14 @@ import {
   InternalServerError
 } from '@/utils/http';
 import { decodeJwtToken } from '@/utils/jwt';
+
+const options: CookieOptions = {
+  maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
+  sameSite: 'none',
+  // secure: true,
+  signed: true
+};
+
 @controller('/auth')
 class AuthController implements interfaces.Controller {
   private authService: IAuth;
@@ -42,12 +50,6 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      let options = {
-        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-        // httpOnly: true,
-        signed: true
-      };
-
       res.cookie('rt', refreshToken, options);
 
       if (!response) {
@@ -78,17 +80,11 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      let options = {
-        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-        // httpOnly: true,
-        signed: true
-      };
-
-      res.cookie('rt', refreshToken, options);
+      // res.cookie('rt', refreshToken, options);
       
-      if (!response) {
-        throw new InternalServerError('Fail to refresh token')
-      }
+      // if (!response) {
+      //   throw new InternalServerError('Fail to refresh token')
+      // }
 
       delete response.refreshToken;
       res.status(200).json(response);
@@ -125,12 +121,6 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      let options = {
-        maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
-        // httpOnly: true,
-        signed: true
-      };
-
       res.cookie('rt', refreshToken, options);
 
       delete response.refreshToken;

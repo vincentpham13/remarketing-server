@@ -160,7 +160,7 @@ export class AuthService implements IAuth {
   async refreshToken(rs: RequestScope, userId: string): Promise<any> {
     try {
       const response = rs.db.withTransaction<any>(async () => {
-        const user = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
+        const user = await this.userRepo.getUserInfoById(rs, userId);
         if (!user) {
           throw new Error('User not found');
         }
