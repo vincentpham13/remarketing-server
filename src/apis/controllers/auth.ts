@@ -16,7 +16,8 @@ import { decodeJwtToken } from '@/utils/jwt';
 const options: CookieOptions = {
   maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
   sameSite: 'none',
-  // secure: true,
+  httpOnly: true, // Only server accesses cookie
+  secure: process.env.NODE_ENV === 'production', // client servers over https
   signed: true
 };
 
@@ -80,11 +81,11 @@ class AuthController implements interfaces.Controller {
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
-      // res.cookie('rt', refreshToken, options);
+      res.cookie('rt', refreshToken, options);
       
-      // if (!response) {
-      //   throw new InternalServerError('Fail to refresh token')
-      // }
+      if (!response) {
+        throw new InternalServerError('Fail to refresh token')
+      }
 
       delete response.refreshToken;
       res.status(200).json(response);
@@ -96,6 +97,7 @@ class AuthController implements interfaces.Controller {
   @httpPost('/logout', AuthMiddleware)
   private async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      res.clearCookie('rt');
       await this.authService.logout(req.requestScope);
       res.status(200).json({ status: 'ok' })
 

@@ -57,7 +57,7 @@ export class CampaignService implements ICampaignService {
           "successMessages": newSuccessMessages,
         }
         if (newSuccessMessages === campaign.totalMessages) {
-          updateCampaign["status"] = "compeleted";
+          updateCampaign["status"] = "completed";
         }
 
         const updatedCampaign = await this.campaignRepo.update(rs, updateCampaign);
