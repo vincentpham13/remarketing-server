@@ -10,7 +10,7 @@
     "copy": "cpx 'knexfile.ts' 'build/' && cpx 'src/migrations/**' 'build/src/migrations' && cpx 'tsconfig.json' 'build/'",
     "lint": "eslint \"src/**/*.ts\" --ignore-pattern '__tests__/*.spec.ts'",
     "prebuild": "npm run lint && npm run clean",
-    "build:dev": "npm run prebuild && tsc && npm run copy",
+    "build:dev": "npm run prebuild && tsc && shx rm -rf build/src/migrations && npm run copy",
     "build:staging": "npm run prebuild && tsc && npm run copy",
     "start:dev": "TS_NODE_FILES=true && TS_NODE_PROJECT='build/tsconfig.json' && node -r ts-node/register -r tsconfig-paths/register build/src/main.js",
     "start:staging": "NODE_ENV=production node -r tsconfig-paths/register src/main.js",

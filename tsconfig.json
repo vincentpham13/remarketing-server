@@ -82,7 +82,7 @@
   "include": [
     "src/**/*.ts",
     "__tests__/**/*.ts"
-, "src/migrations/20210121131800_init.ts", "src/migrations/20210121131801_restore_backup.ts"  ],
+  ],
   "exclude": [
     "node_modules"
   ]
