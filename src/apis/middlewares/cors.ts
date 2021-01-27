@@ -19,7 +19,8 @@ export function CorsMiddleware(): RequestHandler {
       "X-Access-Token",
       "Access-Control-Allow-Origin",
       "Access-Control-Allow-Credentials",
-      "Cookie"
+      "Cookie",
+      "Sec-Fetch-Site",
     ],
     credentials: true,
     origin: whitelist,
