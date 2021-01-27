@@ -95,7 +95,7 @@ class AuthController implements interfaces.Controller {
     }
   }
 
-  @httpPost('/logout', AuthMiddleware(UserRole.FBUser))
+  @httpPost('/logout', AuthMiddleware())
   private async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       res.clearCookie('rt');
