@@ -17,7 +17,7 @@ const options: CookieOptions = {
   maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
   sameSite: 'none',
   httpOnly: true, // Only server accesses cookie
-  secure: true, // client servers over https
+  secure: process.env.NODE_ENV === 'production', // client servers over https
   signed: true
 };
 
