@@ -8,8 +8,9 @@ import { inject } from 'inversify';
 import TYPES from '@/inversify/TYPES';
 import { ICampaignService } from '../services/campaign';
 import { BadRequest, InternalServerError } from '@/utils/http';
+import { UserRole } from '@/enums/userRole';
 
-@controller('/campaigns', AuthMiddleware)
+@controller('/campaigns', AuthMiddleware(UserRole.FBUser))
 class CampaignController implements interfaces.Controller {
   constructor(
     @inject(TYPES.CampaignService) private campaignService: ICampaignService

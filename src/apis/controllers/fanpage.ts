@@ -9,8 +9,9 @@ import { inject } from 'inversify';
 import TYPES from '@/inversify/TYPES';
 import { FanPageService } from '../services/fanpage';
 import { BadRequest, InternalServerError } from '@/utils/http';
+import { UserRole } from '@/enums/userRole';
 
-@controller('/fanpages', AuthMiddleware)
+@controller('/fanpages', AuthMiddleware(UserRole.FBUser))
 class FanPageController implements interfaces.Controller {
   constructor(
     @inject(TYPES.FanPageService) private fanPageService: FanPageService

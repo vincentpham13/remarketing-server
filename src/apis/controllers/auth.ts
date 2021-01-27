@@ -12,6 +12,7 @@ import {
   InternalServerError
 } from '@/utils/http';
 import { decodeJwtToken } from '@/utils/jwt';
+import { UserRole } from '@/enums/userRole';
 
 const options: CookieOptions = {
   maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
@@ -94,7 +95,7 @@ class AuthController implements interfaces.Controller {
     }
   }
 
-  @httpPost('/logout', AuthMiddleware)
+  @httpPost('/logout', AuthMiddleware(UserRole.FBUser))
   private async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       res.clearCookie('rt');
