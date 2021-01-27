@@ -4,8 +4,7 @@ import * as jwt from '@/utils/jwt';
 import db from '@/providers/db';
 import { User } from "@/models/user";
 import { UserIdentity } from "./request";
-import { userInfo } from "os";
-import { Forbidden, Unauthorized } from "@/utils/http";
+import { BadRequest, Forbidden, Unauthorized } from "@/utils/http";
 
 const { connection } = db.getInstance();
 
@@ -14,9 +13,8 @@ export function AuthMiddleware(checkUserRoleId?: number) {
     req: Request,
     res: Response,
     next: NextFunction
-    ): Promise<void> => {
-      try {
-      console.log("🚀 ~ file: auth.ts ~ line 13 ~ AuthMiddleware ~ checkUserRoleId", checkUserRoleId)
+  ): Promise<void> => {
+    try {
       const bearerToken = req.header("Authorization");
 
       if (!bearerToken) {
@@ -32,28 +30,28 @@ export function AuthMiddleware(checkUserRoleId?: number) {
       if (checkUserRoleId && roleId !== checkUserRoleId) {
         throw new Forbidden(null, "No permission");
       }
-      
-      connection.prepare();
-      const existingUser = await connection.queryBuilder
-        .select("*")
-        .from<User>("user")
-        .where("id", id)
-        .first();
 
-      if (!existingUser) {
-        throw new Error("This user does not exist in system.");
-      }
+      // connection.prepare();
+      // const existingUser = await connection.queryBuilder
+      //   .select("*")
+      //   .from<User>("user")
+      //   .where("id", id)
+      //   .first();
 
-      if (token != existingUser?.token) {
-        throw new Error("Token was expired");
-      }
+      // if (!existingUser) {
+      //   throw new Error("This user does not exist in system.");
+      // }
 
+      // if (token != existingUser?.token) {
+      //   throw new Error("Token was expired");
+      // }
+      //Get the refresh token from cookie
 
       req.requestScope.identity = new UserIdentity(
-        existingUser.id,
-        existingUser.name,
-        (existingUser.roleId as number),
-        existingUser.email,
+        decodedToken.id,
+        decodedToken.name,
+        (decodedToken.roleId as number),
+        decodedToken?.email,
       );
 
       next();

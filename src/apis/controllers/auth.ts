@@ -9,7 +9,8 @@ import { AuthMiddleware } from '@/apis/middlewares';
 
 import {
   BadRequest,
-  InternalServerError
+  InternalServerError,
+  Unauthorized
 } from '@/utils/http';
 import { decodeJwtToken } from '@/utils/jwt';
 import { UserRole } from '@/enums/userRole';
@@ -77,13 +78,18 @@ class AuthController implements interfaces.Controller {
       }
 
       const decodedToken = decodeJwtToken(rt);
+      if (!decodedToken) {
+        throw new Unauthorized(null, 'Session expired')
+      }
 
       const response = await this.authService.refreshToken(req.requestScope, decodedToken.id);
       const { refreshToken } = response;
 
       //Set refresh token in httpOnly cookie
+      res.clearCookie('rt');
+
       res.cookie('rt', refreshToken, options);
-      
+
       if (!response) {
         throw new InternalServerError('Fail to refresh token')
       }
