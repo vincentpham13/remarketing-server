@@ -103,7 +103,7 @@ export class AuthService implements IAuth {
             packageId: freePackage.id,
             totalMessages: freePackage.messageAmount,
             successMessages: 0,
-            validTo: moment().add(freePackage.dateDuration, 'days').toDate()
+            validTo: moment().add(freePackage.dayDuration, 'days').toDate()
           });
         }
 

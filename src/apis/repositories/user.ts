@@ -2,8 +2,10 @@ import { injectable } from 'inversify';
 
 import { User, UserPlan } from '@/models/user';
 import { RequestScope } from '@/models/request';
+import { UserRole } from '@/enums/userRole';
 
 export interface IUserRepo {
+  getAllUsers(rs: RequestScope): Promise<User[]>;
   getUserInfoById(rs: RequestScope, id: string): Promise<any>;
   getUserByEmail(rs: RequestScope, email: string): Promise<User>;
   updateUserToken(rs: RequestScope, userId: string, token: string): Promise<User>;
@@ -16,6 +18,23 @@ export interface IUserRepo {
 
 @injectable()
 export class UserRepo implements IUserRepo {
+  async getAllUsers(rs: RequestScope): Promise<User[]> {
+    rs.db.prepare();
+
+    const users = await rs.db.queryBuilder
+      .select([
+        "u.id",
+        "u.name",
+        "u.email",
+        "u.phone",
+        "u.role_id",
+        "u.job",
+      ])
+      .from<User>("user as u")
+      .where("u.role_id", UserRole.FBUser)
+    return users;
+  }
+
   async getUserInfoById(rs: RequestScope, id: string): Promise<any> {
     rs.db.prepare();
 
@@ -30,7 +49,7 @@ export class UserRepo implements IUserRepo {
         "upl.total_messages",
         "upl.success_messages",
         "upl.valid_to",
-        "p.label", 
+        "p.label",
         "p.message_amount",
       ])
       .from<User>("user as u")
@@ -73,30 +92,30 @@ export class UserRepo implements IUserRepo {
     return inserted;
   }
 
-  async updateUserInfo(rs: RequestScope, user: User): Promise<User>{
+  async updateUserInfo(rs: RequestScope, user: User): Promise<User> {
     rs.db.prepare();
     const [updated] = await rs.db.queryBuilder
       .update(user)
       .into<User>("user")
       .returning("*")
       .where("id", user.id);
-      return updated;
+    return updated;
   }
 
-  async getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]>{
+  async getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]> {
     rs.db.prepare();
     const userPlans = await rs.db.queryBuilder
-        .select(["user_plan.*"])
-        .from<UserPlan>("user_plan")
-        .where("user_plan.user_id", userId);
+      .select(["user_plan.*"])
+      .from<UserPlan>("user_plan")
+      .where("user_plan.user_id", userId);
     return userPlans;
   }
 
-  async createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan>{
-      rs.db.prepare();
-      const [inserted] = await rs.db.queryBuilder
-          .insert(userPlan,"*")
-          .into<UserPlan>("user_plan");
-      return inserted;
+  async createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan> {
+    rs.db.prepare();
+    const [inserted] = await rs.db.queryBuilder
+      .insert(userPlan, "*")
+      .into<UserPlan>("user_plan");
+    return inserted;
   }
 }

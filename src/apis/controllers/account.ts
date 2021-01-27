@@ -10,7 +10,8 @@ import {
 import { IUserService } from '../services/user'
 import { BadRequest, InternalServerError } from '@/utils/http';
 import { inject } from 'inversify';
-@controller('/account', AuthMiddleware)
+import { UserRole } from '@/enums/userRole';
+@controller('/account', AuthMiddleware())
 class AccountController implements interfaces.Controller {
   constructor(
     @inject(TYPES.UserService) private userService: IUserService
@@ -39,6 +40,17 @@ class AccountController implements interfaces.Controller {
       
       const response = await this.userService.updateUserInfo(req.requestScope, userInfo);
       res.status(200).json(response);
+
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+  @httpPost('/test')
+  private async test(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      
+      res.status(200).json({status: 'ok'});
 
     } catch (error) {
       next(new InternalServerError(error));

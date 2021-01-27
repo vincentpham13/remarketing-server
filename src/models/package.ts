@@ -1,8 +1,17 @@
 export interface Package {
     id: number;
     label: string;
-    dateDuration: number;
+    dayDuration: number;
+    monthDuration: number;
     messageAmount: number;
     price: number;
-    status: string;
+    status?: string;
+}
+
+export interface PackageCreate {
+    label: string;
+    dayDuration?: number;
+    monthDuration?: number;
+    messageAmount?: number;
+    price: number;
 }
