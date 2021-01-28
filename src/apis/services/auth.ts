@@ -87,7 +87,7 @@ export class AuthService implements IAuth {
         if (!user) {
           // create new user account
 
-          user = await this.userRepo.createUser(rs, {
+          await this.userRepo.createUser(rs, {
             id: fbUserId,
             name: name,
             roleId: 1,

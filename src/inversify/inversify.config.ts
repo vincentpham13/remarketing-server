@@ -15,6 +15,8 @@ import { IUserRepo,UserRepo } from '@/apis/repositories/user';
 import { IUserService, UserService } from '@/apis/services/user';
 import { IPackageRepo, PackageRepo } from '@/apis/repositories/package';
 import { IPackageService, PackageService } from '@/apis/services/package';
+import { IOrderRepo, OrderRepo } from '@/apis/repositories/order';
+import { IOrderService, OrderService } from '@/apis/services/order';
 
 const container = new Container();
 
@@ -36,5 +38,9 @@ container.bind<IUserService>(TYPES.UserService).to(UserService).inSingletonScope
 // package
 container.bind<IPackageRepo>(TYPES.PackageRepo).to(PackageRepo).inSingletonScope();
 container.bind<IPackageService>(TYPES.PackageService).to(PackageService).inSingletonScope();
+
+// order
+container.bind<IOrderRepo>(TYPES.OrderRepo).to(OrderRepo).inSingletonScope();
+container.bind<IOrderService>(TYPES.OrderService).to(OrderService).inSingletonScope();
 
 export default container;
