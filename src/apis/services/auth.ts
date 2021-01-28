@@ -83,21 +83,20 @@ export class AuthService implements IAuth {
           throw new InternalServerError(null, "UID does not match");
         }
 
-        let user = await this.userRepo.getUserInfoById(rs, fbUserId);
+        const user = await this.userRepo.getUserInfoById(rs, fbUserId);
         if (!user) {
           // create new user account
-
           await this.userRepo.createUser(rs, {
             id: fbUserId,
             name: name,
             roleId: 1,
-          })
+          });
           const freePackage = await this.packageRepo.getPackageById(rs, Package.Free);
 
           if (!freePackage) {
             throw new InternalServerError(null, "Free package not exist");
           }
-          const duration  = freePackage.dayDuration !== null 
+          const expireDate  = freePackage.dayDuration !== null 
             ? moment().add(freePackage.dayDuration, 'days').toDate()
             : moment().add(freePackage.monthDuration, 'months').toDate()
           await this.userRepo.createUserPlan(rs, {
@@ -105,7 +104,7 @@ export class AuthService implements IAuth {
             packageId: freePackage.id,
             totalMessages: freePackage.messageAmount * 1000, 
             successMessages: 0,
-            validTo: duration
+            validTo: expireDate
           });
         }
 

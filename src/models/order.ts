@@ -2,9 +2,8 @@ export interface Order {
   id: string;
   userId: string;
   packageId: number;
-  status: string
+  status: string;
 }
-
 
 export interface OrderCreate {
   userId: string;

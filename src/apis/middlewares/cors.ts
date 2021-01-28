@@ -6,6 +6,7 @@ export function CorsMiddleware(): RequestHandler {
     "http://localhost:4000",
     "https://localhost:3000",
     "https://app.hana.ai",
+    "https://app.bombot.vn",
     /chrome-extension:\/\/[\w]*/,
   ];
 
