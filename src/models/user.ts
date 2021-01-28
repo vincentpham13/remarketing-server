@@ -21,3 +21,14 @@ export interface UserPlanUpdate {
   userId: string;
   [key: string]: string | number;
 }
+export interface UserInfo {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  job?: string;
+  roleId?: number;
+  totalMessages: number;
+  successMessages: number;
+  validTo: Date;
+}

@@ -1,22 +1,27 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { interfaces, controller, httpGet, httpPost, httpPut } from "inversify-express-utils";
+import { interfaces, controller, httpGet, httpPost, httpPut, httpDelete } from "inversify-express-utils";
 
 import {
   AuthMiddleware
 } from '@/apis/middlewares';
 import { inject } from 'inversify';
 import TYPES from '@/inversify/TYPES';
-import { BadRequest, InternalServerError } from '@/utils/http';
+import { BadRequest, InternalServerError, Unauthorized } from '@/utils/http';
 import { UserRole } from '@/enums/userRole';
 import { IUserService } from '@/apis/services/user';
 import { IPackageService } from '@/apis/services/package';
+import { IOrderService } from '@/apis/services/order';
+import { OrderStatus } from '@/enums/orderStatus';
+import { RequestScope } from '@/models/request';
 
 @controller('/admin', AuthMiddleware(UserRole.Admin))
 class AdminController implements interfaces.Controller {
   constructor(
     @inject(TYPES.UserService) private userService: IUserService,
     @inject(TYPES.PackageService) private packageService: IPackageService,
+    @inject(TYPES.OrderService) private orderService: IOrderService,
+
   ) {
 
   }
@@ -91,6 +96,64 @@ class AdminController implements interfaces.Controller {
         messageAmount,
         price,
       });
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @httpGet('/orders')
+  private async getOrders(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const response = await this.orderService.getAllOrder(req.requestScope);
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @httpPut('/orders/:id')
+  private async updateOrders(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequest(null, 'missing order id');
+      }
+
+      const {
+        userId,
+        packageId,
+        status,
+      } = req.body;
+
+      if (!userId || !packageId || !status) {
+        throw new BadRequest(null, "Invalid order");
+      }
+      if(!Object.values(OrderStatus).includes(status)){
+        throw new BadRequest(null, "Invalid order status");
+      }
+
+      const response = await this.orderService.updateOrder(req.requestScope, {
+        id,
+        userId,
+        packageId,
+        status,
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @httpDelete('/orders/:id')
+  private async deleteOrder(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequest(null, 'missing order id');
+      }
+      const response = await this.orderService.deleteOrder(req.requestScope, id);
       res.status(200).json(response);
     } catch (error) {
       next(error);
