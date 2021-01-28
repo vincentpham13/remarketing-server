@@ -16,3 +16,8 @@ export interface UserPlan {
   successMessages: number;
   validTo: Date;
 }
+
+export interface UserPlanUpdate {
+  userId: string;
+  [key: string]: string | number;
+}
