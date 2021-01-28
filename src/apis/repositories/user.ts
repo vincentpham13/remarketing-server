@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 
-import { User, UserPlan } from '@/models/user';
+import { User, UserPlan, UserPlanUpdate } from '@/models/user';
 import { RequestScope } from '@/models/request';
 import { UserRole } from '@/enums/userRole';
 
@@ -14,6 +14,7 @@ export interface IUserRepo {
 
   getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]>;
   createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan>;
+  updateUserPlan(rs: RequestScope, userPlan: UserPlanUpdate): Promise<UserPlan>;
 }
 
 @injectable()
@@ -117,5 +118,17 @@ export class UserRepo implements IUserRepo {
       .insert(userPlan, "*")
       .into<UserPlan>("user_plan");
     return inserted;
+  }
+
+  async updateUserPlan(rs: RequestScope, userPlan: UserPlanUpdate): Promise<UserPlan> {
+    rs.db.prepare();
+
+    const [updated] = await rs.db.queryBuilder
+      .update(userPlan)
+      .into<UserPlan>("user_plan")
+      .returning("*")
+      .where("user_id", userPlan.userId);
+
+    return updated;
   }
 }

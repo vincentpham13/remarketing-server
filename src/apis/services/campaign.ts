@@ -5,6 +5,7 @@ import { RequestScope } from '@/models/request';
 import { ICampaignRepo } from '../repositories/campaign';
 import { Campaign, CampaignUpdate } from '@/models/campaign';
 import { InternalServerError } from '@/utils/http';
+import { IUserRepo } from '../repositories/user';
 
 
 export interface ICampaignService {
@@ -18,6 +19,8 @@ export interface ICampaignService {
 export class CampaignService implements ICampaignService {
   @inject(TYPES.CampaignRepo)
   private campaignRepo: ICampaignRepo;
+  @inject(TYPES.UserRepo)
+  private userRepo: IUserRepo;
 
   async getAllCampaigns(rs: RequestScope): Promise<any[]> {
     try {
@@ -45,7 +48,6 @@ export class CampaignService implements ICampaignService {
   async updateSuccessPart(rs: RequestScope, campaignId: number, success: number): Promise<Campaign> {
     try {
       const campaign = await this.campaignRepo.getOneByCreatorId(rs, rs.identity.getID(), campaignId);
-      console.log("🚀 ~ file: campaign.ts ~ line 46 ~ CampaignService ~ updateSuccessPart ~ campaign", campaign)
       const newSuccessMessages = success + (campaign.successMessages || 0);
       if (newSuccessMessages > campaign.totalMessages) {
         throw new InternalServerError(null, "Invalid data");
@@ -59,6 +61,12 @@ export class CampaignService implements ICampaignService {
         if (newSuccessMessages === campaign.totalMessages) {
           updateCampaign["status"] = "completed";
         }
+
+        const { successMessages } = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
+        await this.userRepo.updateUserPlan(rs, {
+          userId: rs.identity.getID(),
+          "successMessages": successMessages + success,
+        });
 
         const updatedCampaign = await this.campaignRepo.update(rs, updateCampaign);
         return updatedCampaign;
