@@ -1,12 +1,12 @@
 import { injectable } from 'inversify';
 
-import { User, UserPlan } from '@/models/user';
+import { User, UserInfo, UserPlan } from '@/models/user';
 import { RequestScope } from '@/models/request';
 import { UserRole } from '@/enums/userRole';
 
 export interface IUserRepo {
   getAllUsers(rs: RequestScope): Promise<User[]>;
-  getUserInfoById(rs: RequestScope, id: string): Promise<any>;
+  getUserInfoById(rs: RequestScope, id: string): Promise<UserInfo>;
   getUserByEmail(rs: RequestScope, email: string): Promise<User>;
   updateUserToken(rs: RequestScope, userId: string, token: string): Promise<User>;
   createUser(rs: RequestScope, user: User): Promise<User>;
@@ -35,7 +35,7 @@ export class UserRepo implements IUserRepo {
     return users;
   }
 
-  async getUserInfoById(rs: RequestScope, id: string): Promise<any> {
+  async getUserInfoById(rs: RequestScope, id: string): Promise<UserInfo> {
     rs.db.prepare();
 
     const user = await rs.db.queryBuilder
@@ -49,8 +49,6 @@ export class UserRepo implements IUserRepo {
         "upl.total_messages",
         "upl.success_messages",
         "upl.valid_to",
-        "p.label",
-        "p.message_amount",
       ])
       .from<User>("user as u")
       .leftJoin("user_plan as upl", "upl.user_id", "=", "u.id")

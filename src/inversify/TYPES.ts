@@ -8,6 +8,8 @@ const TYPES = {
   CampaignService: Symbol('CampaignService'),
   PackageRepo: Symbol('PackageRepo'),
   PackageService: Symbol('PackageService'),
+  OrderRepo: Symbol('OrderRepo'),
+  OrderService: Symbol('OrderService'),
 }
 
 export default TYPES;

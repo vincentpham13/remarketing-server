@@ -16,3 +16,15 @@ export interface UserPlan {
   successMessages: number;
   validTo: Date;
 }
+
+export interface UserInfo {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  job?: string;
+  roleId?: number;
+  totalMessages: number;
+  successMessages: number;
+  validTo: Date;
+}

@@ -1,14 +1,14 @@
 import { inject, injectable } from 'inversify';
 import TYPES from '@/inversify/TYPES';
 import { RequestScope } from '@/models/request';
-import { User } from '@/models/user';
+import { User, UserInfo } from '@/models/user';
 
 
 import { } from '@/utils/http';
 import { IUserRepo } from '../repositories/user';
 
 export interface IUserService {
-  getUserInfo(rs: RequestScope, userId: string): Promise<any>;
+  getUserInfo(rs: RequestScope, userId: string): Promise<UserInfo>;
   getAllUsers(rs: RequestScope): Promise<User[]>;
   updateUserInfo(rs: RequestScope, user: User): Promise<User>;
 }
@@ -18,7 +18,7 @@ export class UserService implements IUserService {
   @inject(TYPES.UserRepo)
   private userRepo: IUserRepo;
 
-  async getUserInfo(rs: RequestScope, userId: string): Promise<any> {
+  async getUserInfo(rs: RequestScope, userId: string): Promise<UserInfo> {
     try {
       const user = await this.userRepo.getUserInfoById(rs, userId);
       return user;
@@ -37,8 +37,9 @@ export class UserService implements IUserService {
 
   async updateUserInfo(rs: RequestScope, user: User): Promise<User> {
     try {
-      const updatedUser = await this.userRepo.updateUserInfo(rs, user);
-      return updatedUser;
+      return rs.db.withTransaction<User>(async () => {
+        return await this.userRepo.updateUserInfo(rs, user);
+      });
     } catch (error) {
       throw error;
     }
