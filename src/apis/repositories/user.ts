@@ -106,7 +106,7 @@ export class UserRepo implements IUserRepo {
     const userPlan = await rs.db.queryBuilder
       .select(["user_plan.*"])
       .from<UserPlan>("user_plan")
-      .where("user_plan.user_id", userId)
+      .where("user_id", userId)
       .first();
     return userPlan;
   }
