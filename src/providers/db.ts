@@ -21,7 +21,11 @@ export class Executor implements IExecutor {
   }
 
   prepare(): void {
-    this.queryBuilder = this.client.queryBuilder();
+    this.queryBuilder.clearSelect();
+    this.queryBuilder.clearWhere();
+    this.queryBuilder.clearHaving();
+    this.queryBuilder.clearOrder();
+    this.queryBuilder.clearCounters();
   }
 
   async withTransaction<T extends {} = any>(f: FuncExecutor): Promise<T> {

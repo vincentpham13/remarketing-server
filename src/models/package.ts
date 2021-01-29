@@ -6,6 +6,7 @@ export interface Package {
     messageAmount: number;
     price: number;
     status?: string;
+    packageTypeId?: number;
 }
 
 export interface PackageCreate {

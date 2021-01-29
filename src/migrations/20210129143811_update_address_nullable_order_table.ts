@@ -3,8 +3,8 @@ import * as Knex from "knex";
 
 export async function up(knex: Knex): Promise<void> {
     await knex.schema.raw(`
-        drop index if exists order_user_id_uindex;
-    `);
+        alter table public.order alter column address drop not null;
+    `)
 }
 
 

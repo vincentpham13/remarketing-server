@@ -3,3 +3,8 @@ export enum Package {
   T3 = 2,
   MessageCountUnit = 1000
 } 
+
+export enum PackageType {
+  TimeAndMessage = 1,
+  MessageOnly = 2,
+}

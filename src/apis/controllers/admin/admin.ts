@@ -33,7 +33,7 @@ class AdminController implements interfaces.Controller {
       const response = await this.userService.getAllUsers(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -43,7 +43,7 @@ class AdminController implements interfaces.Controller {
       const response = await this.packageService.getAllPackages(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -69,9 +69,10 @@ class AdminController implements interfaces.Controller {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
+  
   @httpPut('/packages/:id')
   private async updatePackages(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
@@ -99,7 +100,7 @@ class AdminController implements interfaces.Controller {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -109,51 +110,46 @@ class AdminController implements interfaces.Controller {
       const response = await this.orderService.getAllOrder(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
   @httpPut('/orders/:id')
   private async updateOrder(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
+      const { id } = req.params
       const {
-        id,
         userId,
-        packageId,
+        fullName,
+        email,
+        phone,
+        address,
+        businessName,
+        businessAddress,
+        emailReceipt,
+        taxId,
         status,
+        packageIds,
       } = req.body;
 
       if (!id) {
         throw new BadRequest(null, 'missing order id');
       }
 
-      if (!userId || !packageId || !status) {
+      if (!userId || !packageIds || !status) {
         throw new BadRequest(null, "Invalid order");
       }
 
-      const order = await this.orderService.getOrderId(req.requestScope, id);
-      if (!order) {
-        throw new BadRequest(null, "Order not exist");
-      }
+      // const response = await this.orderService.updateOrder(req.requestScope, {
+      //   id,
+      //   userId,
+      //   status,
+      //   packageIds,
+      // },);
 
-      if(!Object.values(OrderStatus).includes(status)){
-        throw new BadRequest(null, "Invalid order status");
-      }
-
-      if(status === order.status){
-        throw new BadRequest(null, "Your order has been updated");
-      }
-
-      const response = await this.orderService.updateOrder(req.requestScope, {
-        id,
-        userId,
-        packageId,
-        status,
-      });
-
-      res.status(200).json(response);
+      // res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, "Fail to"));
     }
   }
 
@@ -165,24 +161,11 @@ class AdminController implements interfaces.Controller {
         throw new BadRequest(null, 'missing order id');
       }
 
-      let order = await this.orderService.getOrderId(req.requestScope, id);
-      if (!order) {
-        throw new BadRequest(null, "Order not exist");
-      }
-
-      if(order.status === OrderStatus.CANCELLED){
-        throw new BadRequest(null, "Your order has been cancelled");
-      }
-
-      if(order.status === OrderStatus.SUCCESS){
-        throw new BadRequest(null, "Your order has been processed");
-      }
-
-      const response = await this.orderService.confirmOrder(req.requestScope, order);
+      const response = await this.orderService.confirmOrder(req.requestScope, parseInt(id, 10));
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -194,24 +177,11 @@ class AdminController implements interfaces.Controller {
         throw new BadRequest(null, 'missing order id');
       }
 
-      let order = await this.orderService.getOrderId(req.requestScope, id);
-      if (!order) {
-        throw new BadRequest(null, "Order not exist");
-      }
-
-      if(order.status === OrderStatus.SUCCESS){
-        throw new BadRequest(null, "Your order has been processed");
-      }
-
-      if(order.status === OrderStatus.CANCELLED){
-        throw new BadRequest(null, "Your order has been cancelled");
-      }
-
-      const response = await this.orderService.cancelOrder(req.requestScope, order);
+      const response = await this.orderService.cancelOrder(req.requestScope, parseInt(id,10));
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -223,10 +193,10 @@ class AdminController implements interfaces.Controller {
       if (!id) {
         throw new BadRequest(null, 'missing order id');
       }
-      const response = await this.orderService.deleteOrder(req.requestScope, id);
+      const response = await this.orderService.deleteOrder(req.requestScope, parseInt(id, 10));
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 }
