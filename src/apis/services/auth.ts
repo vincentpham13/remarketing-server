@@ -96,13 +96,11 @@ export class AuthService implements IAuth {
           if (!freePackage) {
             throw new InternalServerError(null, "Free package not exist");
           }
-          const expireDate  = freePackage.dayDuration !== null 
-            ? moment().add(freePackage.dayDuration, 'days').toDate()
-            : moment().add(freePackage.monthDuration, 'months').toDate()
+          const expireDate  = moment().add(freePackage.dayDuration, 'days').toDate();
           await this.userRepo.createUserPlan(rs, {
             userId: fbUserId,
             packageId: freePackage.id,
-            totalMessages: freePackage.messageAmount * 1000, 
+            totalMessages: freePackage.messageAmount * Package.MessageCountUnit, 
             successMessages: 0,
             validTo: expireDate
           });

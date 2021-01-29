@@ -19,7 +19,7 @@ export interface UserPlan {
 
 export interface UserPlanUpdate {
   userId: string;
-  [key: string]: string | number;
+  [key: string]: string | number | Date;
 }
 export interface UserInfo {
   id: string;

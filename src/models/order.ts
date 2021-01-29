@@ -10,3 +10,8 @@ export interface OrderCreate {
   packageId: number;
   status: string;
 }
+
+export interface OrderUpdate {
+  id: string;
+  [key: string]: string | number | Date;
+}
