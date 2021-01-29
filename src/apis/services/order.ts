@@ -2,26 +2,26 @@ import { inject, injectable } from 'inversify';
 import TYPES from '@/inversify/TYPES';
 import { RequestScope } from '@/models/request';
 
-import { } from '@/utils/http';
+import { BadRequest, InternalServerError } from '@/utils/http';
 import { Order, OrderCreate, OrderUpdate } from '@/models/order';
 import { IOrderRepo } from '../repositories/order';
 import { OrderStatus } from '@/enums/orderStatus';
 import { IUserRepo } from '../repositories/user';
 import { TYPE } from 'inversify-express-utils';
 import { IPackageRepo } from '../repositories/package';
-import { Package } from '@/enums/package';
+import { Package, PackageType } from '@/enums/package';
 import { now } from 'moment-timezone';
 import moment from 'moment';
 
 export interface IOrderService {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
-  getOrderId(rs: RequestScope, id: string): Promise<Order>;
+  getOrderId(rs: RequestScope, id: number): Promise<Order>;
   getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]>;
   createOrder(rs: RequestScope, order: OrderCreate): Promise<Order>;
   updateOrder(rs: RequestScope, order: OrderUpdate): Promise<Order>;
-  confirmOrder(rs: RequestScope, order: Order): Promise<Order>;
+  confirmOrder(rs: RequestScope, orderId: number): Promise<Order>;
   cancelOrder(rs: RequestScope, order: Order): Promise<Order>;
-  deleteOrder(rs: RequestScope, id: string): Promise<any>;
+  deleteOrder(rs: RequestScope, id: number): Promise<any>;
 }
 
 @injectable()
@@ -32,6 +32,7 @@ export class OrderService implements IOrderService {
   private userRepo: IUserRepo
   @inject(TYPES.PackageRepo)
   private packageRepo: IPackageRepo
+
   async getAllOrder(rs: RequestScope): Promise<Order[]> {
     try {
       const orders = await this.orderRepo.getAllOrder(rs);
@@ -41,9 +42,9 @@ export class OrderService implements IOrderService {
     }
   }
 
-  async getOrderId(rs: RequestScope, id: string): Promise<Order> {
+  async getOrderId(rs: RequestScope, id: number): Promise<Order> {
     try {
-      const order = await this.orderRepo.getOrdersById(rs, id);
+      const order = await this.orderRepo.getOrderById(rs, id);
       return order;
     } catch (error) {
       throw error;
@@ -79,30 +80,53 @@ export class OrderService implements IOrderService {
     }
   }
 
-  async confirmOrder(rs: RequestScope, order: Order): Promise<Order> {
+  async confirmOrder(rs: RequestScope, orderId: number): Promise<Order> {
     try {
-
       return rs.db.withTransaction<any>(async () => {
-        let userPlan = await this.userRepo.getUserPlanById(rs, order.userId);
-        const packageData = await this.packageRepo.getPackageById(rs, order.packageId);
-        const newTotalMessage = userPlan.totalMessages + packageData.messageAmount * Package.MessageCountUnit;
-        const newExpireDate = packageData.monthDuration != null
-          ? moment(userPlan.validTo).add(packageData.monthDuration, 'months').toDate()
-          : moment(userPlan.validTo).add(packageData.dayDuration, 'days').toDate();
+
+        // find order
+        const existingOrder = await this.orderRepo.getOrderById(rs, orderId);
+        if (!existingOrder) {
+          throw new InternalServerError(null, "Order does not exist");
+        }
+
+        if(existingOrder.status === OrderStatus.CANCELLED){
+          throw new BadRequest(null, "Your order has been cancelled");
+        }
+  
+        if(existingOrder.status === OrderStatus.SUCCESS){
+          throw new BadRequest(null, "Your order has been processed");
+        }
+        
+        const userPlan = await this.userRepo.getUserPlanById(rs, existingOrder.userId);
+        const orderPackages = await this.packageRepo.getPackagesByOrderId(rs, orderId);
+        if(!orderPackages || (orderPackages && !orderPackages.length)) {
+          throw new InternalServerError(null, "Ordered packages are empty");
+        }
+
+        let addMonthDuration = 0;
+        let addMessageAmount = 0;
+        for(const orderPackage of orderPackages) {
+          if(orderPackage.packageTypeId === PackageType.TimeAndMessage) {
+            addMonthDuration +=  orderPackage.monthDuration // moment(userPlan.validTo).add(orderPackage.monthDuration, 'months').toDate();
+          }
+
+          addMessageAmount += orderPackage.messageAmount * Package.MessageCountUnit;
+        }
 
         //update user plan
         const updatedUserPlan = await this.userRepo.updateUserPlan(rs, {
-          userId: order.userId,
-          totalMessages: newTotalMessage,
-          validTo: newExpireDate,
+          userId: existingOrder.userId,
+          totalMessages: userPlan.totalMessages + addMessageAmount,
+          validTo: moment(userPlan.validTo).add(addMonthDuration, 'months').toDate(),
         });
 
         //update order
         const updatedOrder = await this.orderRepo.updateOrder(rs, {
-          id: order.id,
+          id: existingOrder.id,
           status: OrderStatus.SUCCESS,
-          updatedAt: moment().toDate().toDateString()
-        })
+          updatedAt: new Date()
+        });
 
         return updatedOrder;
       });
@@ -129,7 +153,7 @@ export class OrderService implements IOrderService {
     }
   }
 
-  async deleteOrder(rs: RequestScope, id: string): Promise<any> {
+  async deleteOrder(rs: RequestScope, id: number): Promise<any> {
     try {
       return rs.db.withTransaction<Order>(async () => {
         await this.orderRepo.deleteOrder(rs, id);

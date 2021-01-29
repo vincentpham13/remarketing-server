@@ -33,7 +33,7 @@ class AdminController implements interfaces.Controller {
       const response = await this.userService.getAllUsers(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -43,7 +43,7 @@ class AdminController implements interfaces.Controller {
       const response = await this.packageService.getAllPackages(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -69,7 +69,7 @@ class AdminController implements interfaces.Controller {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
   @httpPut('/packages/:id')
@@ -99,7 +99,7 @@ class AdminController implements interfaces.Controller {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -109,7 +109,7 @@ class AdminController implements interfaces.Controller {
       const response = await this.orderService.getAllOrder(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -153,7 +153,7 @@ class AdminController implements interfaces.Controller {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, "Fail to"));
     }
   }
 
@@ -165,24 +165,11 @@ class AdminController implements interfaces.Controller {
         throw new BadRequest(null, 'missing order id');
       }
 
-      let order = await this.orderService.getOrderId(req.requestScope, id);
-      if (!order) {
-        throw new BadRequest(null, "Order not exist");
-      }
-
-      if(order.status === OrderStatus.CANCELLED){
-        throw new BadRequest(null, "Your order has been cancelled");
-      }
-
-      if(order.status === OrderStatus.SUCCESS){
-        throw new BadRequest(null, "Your order has been processed");
-      }
-
-      const response = await this.orderService.confirmOrder(req.requestScope, order);
+      const response = await this.orderService.confirmOrder(req.requestScope, parseInt(id, 10));
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -194,7 +181,7 @@ class AdminController implements interfaces.Controller {
         throw new BadRequest(null, 'missing order id');
       }
 
-      let order = await this.orderService.getOrderId(req.requestScope, id);
+      let order = await this.orderService.getOrderId(req.requestScope, parseInt(id, 10));
       if (!order) {
         throw new BadRequest(null, "Order not exist");
       }
@@ -211,7 +198,7 @@ class AdminController implements interfaces.Controller {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 
@@ -223,10 +210,10 @@ class AdminController implements interfaces.Controller {
       if (!id) {
         throw new BadRequest(null, 'missing order id');
       }
-      const response = await this.orderService.deleteOrder(req.requestScope, id);
+      const response = await this.orderService.deleteOrder(req.requestScope, parseInt(id, 10));
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      next(new InternalServerError(error, ""));
     }
   }
 }

@@ -5,6 +5,7 @@ import { injectable } from 'inversify';
 export interface IPackageRepo {
   getAllPackage(rs: RequestScope): Promise<Package[]>;
   getPackageById(rs: RequestScope, packageId: number): Promise<Package>;
+  getPackagesByOrderId(rs: RequestScope, orderId: number): Promise<Package[]>;
   createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package>;
   updatePackage(rs: RequestScope, id: number, packagePlan: PackageCreate): Promise<Package>;
 }
@@ -21,12 +22,22 @@ export class PackageRepo implements IPackageRepo {
 
   async getPackageById(rs: RequestScope, packageId: number): Promise<Package> {
     rs.db.prepare();
-    const freePackage = await rs.db.queryBuilder
+
+    return await rs.db.queryBuilder
       .select(["package.*"])
       .from<Package>("package")
       .where("id", packageId)
       .first();
-    return freePackage;
+  }
+
+  async getPackagesByOrderId(rs: RequestScope, orderId: number): Promise<Package[]> {
+    rs.db.prepare();
+
+    return await rs.db.queryBuilder
+      .select(["package.*"])
+      .from<Package>("package")
+      .leftJoin("order_package as op", "op.package_id", "=", "package.id")
+      .where("op.order_id", orderId)
   }
 
   async createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package> {
