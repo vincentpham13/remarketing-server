@@ -72,6 +72,7 @@ class AdminController implements interfaces.Controller {
       next(new InternalServerError(error, ""));
     }
   }
+  
   @httpPut('/packages/:id')
   private async updatePackages(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
