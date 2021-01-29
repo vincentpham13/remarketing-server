@@ -28,7 +28,7 @@ export class OrderRepo implements IOrderRepo {
       .from<Order>("order as o")
       .innerJoin("order_package as op", "op.order_id", "=", "o.id")
       .innerJoin("package as p", "op.package_id", "=", "p.id")
-      .groupBy("o.id")
+      .groupBy("o.id");
   }
 
   async getOrderById(rs: RequestScope, orderId: number): Promise<Order> {
@@ -51,11 +51,18 @@ export class OrderRepo implements IOrderRepo {
   async getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]> {
     rs.db.prepare();
 
-    const orders = await rs.db.queryBuilder
-      .select(["*"])
-      .from<Order>("order")
-      .where('user_id', userId)
-    return orders;
+    return await rs.db.queryBuilder
+      .select([
+        "o.*",
+        rs.db.client.raw(
+          `array_agg(to_jsonb(p)) as packages`
+        ),
+      ])
+      .from<Order>("order as o")
+      .innerJoin("order_package as op", "op.order_id", "=", "o.id")
+      .innerJoin("package as p", "op.package_id", "=", "p.id")
+      .groupBy("o.id")
+      .where("user_id", userId);
   }
 
   async createOrder(rs: RequestScope, order: OrderCreate): Promise<Order> {

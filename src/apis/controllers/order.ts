@@ -27,6 +27,7 @@ class OrderController implements interfaces.Controller {
       next(new InternalServerError(error));
     }
   }
+  
   @httpPost('/')
   private async createOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
