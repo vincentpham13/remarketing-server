@@ -45,6 +45,7 @@ export class OrderRepo implements IOrderRepo {
       .innerJoin("order_package as op", "op.order_id", "=", "o.id")
       .innerJoin("package as p", "op.package_id", "=", "p.id")
       .groupBy("o.id")
+      .where("o.id", orderId)
       .first();
   }
 
