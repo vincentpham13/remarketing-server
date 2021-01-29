@@ -1,13 +1,14 @@
 import { injectable } from 'inversify';
 
 import { RequestScope } from '@/models/request';
-import { Order, OrderCreate, OrderUpdate } from '@/models/order';
+import { Order, OrderCreate, OrderPackage, OrderUpdate } from '@/models/order';
 
 export interface IOrderRepo {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
   getOrderById(rs: RequestScope, orderId: number): Promise<Order>;
   getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]>;
   createOrder(rs: RequestScope, order: OrderCreate): Promise<Order>;
+  createOrderPackage(rs: RequestScope, orderPackage: OrderPackage): Promise<OrderPackage>;
   updateOrder(rs: RequestScope, order: OrderUpdate): Promise<Order>;
   deleteOrder(rs: RequestScope, id: number): Promise<any>;
 }
@@ -63,6 +64,15 @@ export class OrderRepo implements IOrderRepo {
     const [inserted] = await rs.db.queryBuilder
       .insert(order, "*")
       .into<Order>("order");
+    return inserted;
+  }
+
+  async createOrderPackage(rs: RequestScope, orderPackage: OrderPackage): Promise<OrderPackage> {
+    rs.db.prepare();
+
+    const [inserted] = await rs.db.queryBuilder
+      .insert(orderPackage, "*")
+      .into<OrderPackage>("order_package");
     return inserted;
   }
 

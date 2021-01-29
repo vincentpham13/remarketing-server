@@ -33,18 +33,33 @@ class OrderController implements interfaces.Controller {
 
       const userId = req.requestScope.identity.getID();
       const {
-        packageId,
+        packageIds,
+        fullName,
+        email,
+        phone,
+        address,
+        businessName,
+        businessAddress,
+        emailReceipt,
+        taxId,
       } = req.body;
 
-      if (!packageId) {
+      if (!packageIds) {
         throw new BadRequest(null, "Invalid order");
       }
-
+  
       const response = await this.orderService.createOrder(req.requestScope, {
         userId,
-        packageId,
+        fullName,
+        email,
+        phone,
+        address,
+        businessName,
+        businessAddress,
+        emailReceipt,
+        taxId,
         status: OrderStatus.PENDING
-      });
+      },packageIds);
 
       res.status(200).json(response);
     } catch (error) {
