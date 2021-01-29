@@ -73,6 +73,19 @@ class AdminController implements interfaces.Controller {
     }
   }
   
+  @httpDelete('/packages/:id')
+  private async removePackages(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const {id} = req.params;
+      if (!id) {
+        throw new BadRequest(null, 'missing package id');
+      }
+      await this.packageService.removePackage(req.requestScope, parseInt(id, 10));
+    } catch (error) {
+      throw new InternalServerError(error, "Failed to remove package");
+    }
+  }
+
   @httpPut('/packages/:id')
   private async updatePackages(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
