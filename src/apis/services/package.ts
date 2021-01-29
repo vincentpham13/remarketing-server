@@ -8,6 +8,7 @@ import { IPackageRepo } from '../repositories/package';
 
 export interface IPackageService {
   getAllPackages(rs: RequestScope): Promise<Package[]>;
+  getPackageById(rs: RequestScope, id: number): Promise<Package>;
   createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package>;
   updatePackage(rs: RequestScope, id: number, packagePlan: PackageCreate): Promise<Package>;
   getFreePackage(rs: RequestScope, packageId: number): Promise<Package>;
@@ -21,6 +22,14 @@ export class PackageService implements IPackageService {
   async getAllPackages(rs: RequestScope): Promise<Package[]> {
     try {
       return await this.packageRepo.getAllPackage(rs);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getPackageById(rs: RequestScope, id: number): Promise<Package> {
+    try {
+      return await this.packageRepo.getPackageById(rs, id);
     } catch (error) {
       throw error;
     }

@@ -14,6 +14,7 @@ import { IPackageService } from '@/apis/services/package';
 import { IOrderService } from '@/apis/services/order';
 import { OrderStatus } from '@/enums/orderStatus';
 import { RequestScope } from '@/models/request';
+import { stat } from 'fs';
 
 @controller('/admin', AuthMiddleware(UserRole.Admin))
 class AdminController implements interfaces.Controller {
@@ -113,24 +114,34 @@ class AdminController implements interfaces.Controller {
   }
 
   @httpPut('/orders/:id')
-  private async updateOrders(req: Request, res: Response, next: NextFunction): Promise<any> {
+  private async updateOrder(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-      const { id } = req.params;
-      if (!id) {
-        throw new BadRequest(null, 'missing order id');
-      }
-
       const {
+        id,
         userId,
         packageId,
         status,
       } = req.body;
 
+      if (!id) {
+        throw new BadRequest(null, 'missing order id');
+      }
+
       if (!userId || !packageId || !status) {
         throw new BadRequest(null, "Invalid order");
       }
+
+      const order = await this.orderService.getOrderId(req.requestScope, id);
+      if (!order) {
+        throw new BadRequest(null, "Order not exist");
+      }
+
       if(!Object.values(OrderStatus).includes(status)){
         throw new BadRequest(null, "Invalid order status");
+      }
+
+      if(status === order.status){
+        throw new BadRequest(null, "Your order has been updated");
       }
 
       const response = await this.orderService.updateOrder(req.requestScope, {
@@ -145,6 +156,65 @@ class AdminController implements interfaces.Controller {
       next(error);
     }
   }
+
+  @httpPost('/orders/:id/confirm')
+  private async confirmOrder(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequest(null, 'missing order id');
+      }
+
+      let order = await this.orderService.getOrderId(req.requestScope, id);
+      if (!order) {
+        throw new BadRequest(null, "Order not exist");
+      }
+
+      if(order.status === OrderStatus.CANCELLED){
+        throw new BadRequest(null, "Your order has been cancelled");
+      }
+
+      if(order.status === OrderStatus.SUCCESS){
+        throw new BadRequest(null, "Your order has been processed");
+      }
+
+      const response = await this.orderService.confirmOrder(req.requestScope, order);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @httpPost('/orders/:id/cancel')
+  private async cancelOrder(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequest(null, 'missing order id');
+      }
+
+      let order = await this.orderService.getOrderId(req.requestScope, id);
+      if (!order) {
+        throw new BadRequest(null, "Order not exist");
+      }
+
+      if(order.status === OrderStatus.SUCCESS){
+        throw new BadRequest(null, "Your order has been processed");
+      }
+
+      if(order.status === OrderStatus.CANCELLED){
+        throw new BadRequest(null, "Your order has been cancelled");
+      }
+
+      const response = await this.orderService.cancelOrder(req.requestScope, order);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   @httpDelete('/orders/:id')
   private async deleteOrder(req: Request, res: Response, next: NextFunction): Promise<any> {

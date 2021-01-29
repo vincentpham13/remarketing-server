@@ -12,7 +12,7 @@ export interface IUserRepo {
   createUser(rs: RequestScope, user: User): Promise<User>;
   updateUserInfo(rs: RequestScope, user: User): Promise<User>;
 
-  getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]>;
+  getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan>;
   createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan>;
   updateUserPlan(rs: RequestScope, userPlan: UserPlanUpdate): Promise<UserPlan>;
 }
@@ -101,13 +101,14 @@ export class UserRepo implements IUserRepo {
     return updated;
   }
 
-  async getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan[]> {
+  async getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan> {
     rs.db.prepare();
-    const userPlans = await rs.db.queryBuilder
+    const userPlan = await rs.db.queryBuilder
       .select(["user_plan.*"])
       .from<UserPlan>("user_plan")
-      .where("user_plan.user_id", userId);
-    return userPlans;
+      .where("user_plan.user_id", userId)
+      .first();
+    return userPlan;
   }
 
   async createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan> {

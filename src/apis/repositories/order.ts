@@ -1,13 +1,14 @@
 import { injectable } from 'inversify';
 
 import { RequestScope } from '@/models/request';
-import { Order, OrderCreate } from '@/models/order';
+import { Order, OrderCreate, OrderUpdate } from '@/models/order';
 
 export interface IOrderRepo {
     getAllOrder(rs: RequestScope): Promise<Order[]>;
+    getOrdersById(rs: RequestScope, id: string): Promise<Order>;
     getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]>;
     createOrder(rs: RequestScope, order: OrderCreate): Promise<Order>;
-    updateOrder(rs: RequestScope, order: Order): Promise<Order>;
+    updateOrder(rs: RequestScope, order: OrderUpdate): Promise<Order>;
     deleteOrder(rs: RequestScope, id: string): Promise<any>;
 }
 
@@ -19,6 +20,17 @@ export class OrderRepo implements IOrderRepo {
         const orders = await rs.db.queryBuilder
             .select(["*"])
             .from<Order>("order")
+        return orders;
+    }
+
+    async getOrdersById(rs: RequestScope, id: string): Promise<Order>{
+        rs.db.prepare();
+
+        const orders = await rs.db.queryBuilder
+            .select(["*"])
+            .from<Order>("order")
+            .where('id',id)
+            .first();
         return orders;
     }
 
@@ -41,7 +53,7 @@ export class OrderRepo implements IOrderRepo {
         return inserted;
     }
 
-    async updateOrder(rs: RequestScope, order: Order): Promise<Order>{
+    async updateOrder(rs: RequestScope, order: OrderUpdate): Promise<Order>{
         rs.db.prepare();
         
         const [updated] = await rs.db.queryBuilder
@@ -49,8 +61,6 @@ export class OrderRepo implements IOrderRepo {
             .into<Order>("order")
             .returning("*")
             .where("id", order.id)
-            .where("user_id", order.userId)
-            .where("package_id", order.packageId);
         return updated;
     }
 
