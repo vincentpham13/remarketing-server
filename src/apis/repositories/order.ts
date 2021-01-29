@@ -5,7 +5,7 @@ import { Order, OrderCreate, OrderUpdate } from '@/models/order';
 
 export interface IOrderRepo {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
-  getOrderById(rs: RequestScope, id: number): Promise<Order>;
+  getOrderById(rs: RequestScope, orderId: number): Promise<Order>;
   getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]>;
   createOrder(rs: RequestScope, order: OrderCreate): Promise<Order>;
   updateOrder(rs: RequestScope, order: OrderUpdate): Promise<Order>;
@@ -17,23 +17,33 @@ export class OrderRepo implements IOrderRepo {
   async getAllOrder(rs: RequestScope): Promise<Order[]> {
     rs.db.prepare();
 
-    const orders = await rs.db.queryBuilder
-      .select(["*"])
-      .from<Order>("order")
-    return orders;
+    return await rs.db.queryBuilder
+      .select([
+        "o.*",
+        rs.db.client.raw(
+          `array_agg(to_jsonb(p)) as packages`
+        ),
+      ])
+      .from<Order>("order as o")
+      .innerJoin("order_package as op", "op.order_id", "=", "o.id")
+      .innerJoin("package as p", "op.package_id", "=", "p.id")
+      .groupBy("o.id")
   }
 
-  async getOrderById(rs: RequestScope, id: number): Promise<Order> {
+  async getOrderById(rs: RequestScope, orderId: number): Promise<Order> {
     rs.db.prepare();
 
     return await rs.db.queryBuilder
       .select([
-        "order.*",
-        
+        "o.*",
+        rs.db.client.raw(
+          `array_agg(to_jsonb(p)) as packages`
+        ),
       ])
-      .from<Order>("order")
-      .innerJoin("order_package as op", "op.package_id", "=", "order.id")
-      .where('id', id)
+      .from<Order>("order as o")
+      .innerJoin("order_package as op", "op.order_id", "=", "o.id")
+      .innerJoin("package as p", "op.package_id", "=", "p.id")
+      .groupBy("o.id")
       .first();
   }
 
