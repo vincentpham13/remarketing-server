@@ -15,6 +15,7 @@ import { IOrderService } from '@/apis/services/order';
 import { OrderStatus } from '@/enums/orderStatus';
 import { RequestScope } from '@/models/request';
 import { stat } from 'fs';
+import { PackageType } from '@/enums/package';
 
 @controller('/admin', AuthMiddleware(UserRole.Admin))
 class AdminController implements interfaces.Controller {
@@ -54,29 +55,31 @@ class AdminController implements interfaces.Controller {
         label,
         monthDuration,
         messageAmount,
-        price
+        price,
+        packageTypeId,
       } = req.body;
 
-      if (!label || !monthDuration || !messageAmount || !price) {
+      if (!label || !monthDuration || !messageAmount || !price || !packageTypeId) {
         throw new BadRequest(null, "Invalid package");
       }
 
       const response = await this.packageService.createPackage(req.requestScope, {
         label,
-        monthDuration,
-        messageAmount,
+        monthDuration: packageTypeId === PackageType.MessageOnly ? 0 : monthDuration,
+        messageAmount: messageAmount,
         price,
+        packageTypeId,
       });
       res.status(200).json(response);
     } catch (error) {
       next(new InternalServerError(error, ""));
     }
   }
-  
+
   @httpDelete('/packages/:id')
   private async removePackages(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-      const {id} = req.params;
+      const { id } = req.params;
       if (!id) {
         throw new BadRequest(null, 'missing package id');
       }
@@ -190,7 +193,7 @@ class AdminController implements interfaces.Controller {
         throw new BadRequest(null, 'missing order id');
       }
 
-      const response = await this.orderService.cancelOrder(req.requestScope, parseInt(id,10));
+      const response = await this.orderService.cancelOrder(req.requestScope, parseInt(id, 10));
 
       res.status(200).json(response);
     } catch (error) {

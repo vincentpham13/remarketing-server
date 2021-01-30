@@ -15,4 +15,5 @@ export interface PackageCreate {
     monthDuration?: number;
     messageAmount?: number;
     price: number;
+    packageTypeId?: number;
 }
