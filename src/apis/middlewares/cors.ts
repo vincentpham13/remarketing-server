@@ -7,6 +7,7 @@ export function CorsMiddleware(): RequestHandler {
     "https://localhost:3000",
     "https://app.hana.ai",
     "https://app.bombot.vn",
+    "https://remarketing-web.vercel.app",
     /chrome-extension:\/\/[\w]*/,
   ];
 

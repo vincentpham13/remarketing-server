@@ -8,9 +8,10 @@ import { IPackageRepo } from '../repositories/package';
 
 export interface IPackageService {
   getAllPackages(rs: RequestScope): Promise<Package[]>;
-  getPackageById(rs: RequestScope, id: number): Promise<Package>;
+  getPackageById(rs: RequestScope, packageId: number): Promise<Package>;
   createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package>;
-  updatePackage(rs: RequestScope, id: number, packagePlan: PackageCreate): Promise<Package>;
+  removePackage(rs: RequestScope, packageId: number): Promise<any>;
+  updatePackage(rs: RequestScope, packageId: number, packagePlan: PackageCreate): Promise<Package>;
   getFreePackage(rs: RequestScope, packageId: number): Promise<Package>;
 }
 
@@ -54,7 +55,17 @@ export class PackageService implements IPackageService {
     }
   }
 
-  async updatePackage(rs: RequestScope, id: number, packagePlan: PackageCreate): Promise<Package> {
+  async removePackage(rs: RequestScope, packageId: number): Promise<Package> {
+    try {
+      return rs.db.withTransaction<Package>(async () => {
+        return await this.packageRepo.removePackage(rs, packageId);
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePackage(rs: RequestScope, id: number, packagePlan: PackageCreate): Promise<any> {
     try {
       return rs.db.withTransaction<Package>(async () => {
         return await this.packageRepo.updatePackage(rs, id, packagePlan);
