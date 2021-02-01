@@ -5,7 +5,7 @@ import { Campaign, CampaignUpdate } from '@/models/campaign';
 
 export interface ICampaignRepo {
   getAllByCreatorId(rs: RequestScope, creatorId: string): Promise<Campaign[]>;
-  getOneByCreatorId(rs: RequestScope, creatorId: string, campaignId: number): Promise<Campaign>;
+  getCampaignById(rs: RequestScope, campaignId: number): Promise<Campaign>;
   getAllByPageId(rs: RequestScope, creatorId: string, pageId: string): Promise<Campaign[]>;
   create(rs: RequestScope, campaign: Campaign): Promise<Campaign>;
   update(rs: RequestScope, campaign: CampaignUpdate): Promise<Campaign>;
@@ -22,15 +22,15 @@ export class CampaignRepo implements ICampaignRepo {
     return campaigns;
   }
 
-  async getOneByCreatorId(rs: RequestScope, creatorId: string, campaignId: number): Promise<Campaign> {
+  async getCampaignById(rs: RequestScope, campaignId: number): Promise<Campaign> {
     rs.db.prepare();
-    const campaigns = await rs.db.queryBuilder
+    const campaign = await rs.db.queryBuilder
       .select(["campaign.*"])
       .from<Campaign>("campaign")
       .where("id", campaignId)
       // .where("creator_id", creatorId)
       .first();
-    return campaigns;
+    return campaign;
   }
 
   async getAllByPageId(rs: RequestScope, creatorId: string, pageId: string): Promise<Campaign[]> {
