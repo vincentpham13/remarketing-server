@@ -33,16 +33,20 @@ class CampaignController implements interfaces.Controller {
       const {
         name,
         pageId,
-        totalMessages
+        totalMessages,
+        memberIds,
+        message
       } = req.body;
-      if (!name || !pageId || !totalMessages) {
+      if (!name || !pageId || !totalMessages || !memberIds || !message) {
         throw new BadRequest(null, "Invalid request body");
       }
 
       const response = await this.campaignService.create(req.requestScope, {
         name: name,
         pageId: pageId,
-        totalMessages: totalMessages
+        totalMessages: totalMessages,
+        memberIds,
+        message
       });
 
       res.status(200).json(response);
@@ -68,6 +72,23 @@ class CampaignController implements interfaces.Controller {
 
       const parsedCampaignId = parseInt(campaignId, 10);
       const response = await this.campaignService.updateSuccessPart(req.requestScope, parsedCampaignId, success);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+  @httpPost('/:campaignId/start')
+  private async startCampaign(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { campaignId } = req.params;
+      if (!campaignId) {
+        throw new BadRequest(null, "Missing param");
+      }
+
+      const parsedCampaignId = parseInt(campaignId, 10);
+      const response = await this.campaignService.startCampaign(req.requestScope, parsedCampaignId);
 
       res.status(200).json(response);
     } catch (error) {
