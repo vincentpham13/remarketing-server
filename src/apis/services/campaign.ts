@@ -15,7 +15,7 @@ import { Member } from '@/models/fanpage';
 export interface ICampaignService {
   getAllCampaigns(rs: RequestScope): Promise<any[]>;
   create(rs: RequestScope, campaign: Campaign, memberUIDs: string[]): Promise<Campaign>;
-  startCampaign(rs: RequestScope, campaignId: number): Promise<Campaign>
+  startCampaign(rs: RequestScope, campaignId: number): Promise<Campaign>;
   updateSuccessPart(rs: RequestScope, campaignId: number, success: number): Promise<Campaign>;
   forceComplete(rs: RequestScope, campaignId: number): Promise<Campaign>;
   getCampaignMembers(rs: RequestScope, campaignId: number): Promise<Member[]>;
