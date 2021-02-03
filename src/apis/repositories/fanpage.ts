@@ -8,6 +8,7 @@ export interface IFanPageRepo {
   getAll(rs: RequestScope): Promise<FanPage[]>;
   getAllByUserId(rs: RequestScope, userId: string): Promise<FanPage[]>;
   getOneByUserId(rs: RequestScope, userId: string, pageId: string): Promise<FanPage>;
+  countPageByUser(rs: RequestScope, userId: string): Promise<any>;
   create(rs: RequestScope, userId: string, fanpage: FanPage): Promise<FanPage>;
   link(rs: RequestScope, userId: string, fanpageId: string): Promise<void>;
   importedMember(rs: RequestScope, member: Member): Promise<Member>;
@@ -49,6 +50,17 @@ export class FanPageRepo implements IFanPageRepo {
       .where("page.id", pageId)
       .first();
     return fanpage;
+  }
+
+  async countPageByUser(rs: RequestScope, userId: string): Promise<any>{
+    rs.db.prepare();
+
+    const result: any = await rs.db.queryBuilder
+      .count('user_id',{ as: 'count'})
+      .from<FanPage>("user_page")
+      .where("user_id", userId)
+      .first();
+    return result.count;
   }
 
   async create(rs: RequestScope, userId: string, fanpage: FanPage): Promise<FanPage> {

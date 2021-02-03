@@ -13,6 +13,7 @@ export interface IUserRepo {
   updateUserInfo(rs: RequestScope, user: User): Promise<User>;
 
   getUserPlanById(rs: RequestScope, userId: string): Promise<UserPlan>;
+  getUserPlanDetailById(rs: RequestScope, userId: string): Promise<UserPlan>
   createUserPlan(rs: RequestScope, userPlan: UserPlan): Promise<UserPlan>;
   updateUserPlan(rs: RequestScope, userPlan: UserPlanUpdate): Promise<UserPlan>;
 }
@@ -106,6 +107,17 @@ export class UserRepo implements IUserRepo {
     const userPlan = await rs.db.queryBuilder
       .select(["user_plan.*"])
       .from<UserPlan>("user_plan")
+      .where("user_id", userId)
+      .first();
+    return userPlan;
+  }
+
+  async getUserPlanDetailById(rs: RequestScope, userId: string): Promise<UserPlan> {
+    rs.db.prepare();
+    const userPlan = await rs.db.queryBuilder
+      .select(["upl.total_messages", "upl.success_messages","upl.valid_to","p.label"])
+      .innerJoin("package as p", "p.id", "=" ,"upl.package_id")
+      .from<UserPlan>("user_plan as upl")
       .where("user_id", userId)
       .first();
     return userPlan;

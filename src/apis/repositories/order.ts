@@ -2,11 +2,14 @@ import { injectable } from 'inversify';
 
 import { RequestScope } from '@/models/request';
 import { Order, OrderCreate, OrderPackage, OrderUpdate } from '@/models/order';
+import { off } from 'process';
+import { StringMappingType } from 'typescript';
 
 export interface IOrderRepo {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
   getOrderById(rs: RequestScope, orderId: number): Promise<Order>;
   getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]>;
+  getOrdersByUserIdPaging(rs: RequestScope, userId: string, limit: number, offset: number, orderByRaw?: string): Promise<any[]>;
   createOrder(rs: RequestScope, order: OrderCreate): Promise<Order>;
   createOrderPackage(rs: RequestScope, orderPackage: OrderPackage): Promise<OrderPackage>;
   updateOrder(rs: RequestScope, order: OrderUpdate): Promise<Order>;
@@ -63,7 +66,28 @@ export class OrderRepo implements IOrderRepo {
       .innerJoin("order_package as op", "op.order_id", "=", "o.id")
       .innerJoin("package as p", "op.package_id", "=", "p.id")
       .groupBy("o.id")
-      .where("user_id", userId);
+      .where("user_id", userId)
+      .orderByRaw('o.created_at DESC');
+  }
+
+  async getOrdersByUserIdPaging(rs: RequestScope, userId: string, limit: number, offset: number, orderByRaw?: string): Promise<Order[]> {
+    rs.db.prepare();
+
+    return await rs.db.queryBuilder
+      .select([
+        "o.*",
+        rs.db.client.raw(
+          `array_agg(to_jsonb(p)) as packages`
+        ),
+      ])
+      .from<Order>("order as o")
+      .innerJoin("order_package as op", "op.order_id", "=", "o.id")
+      .innerJoin("package as p", "op.package_id", "=", "p.id")
+      .groupBy("o.id")
+      .where("user_id", userId)
+      .limit(limit)
+      .offset(offset)
+      .orderByRaw(orderByRaw ? orderByRaw : 'o.created_at DESC');
   }
 
   async createOrder(rs: RequestScope, order: OrderCreate): Promise<Order> {

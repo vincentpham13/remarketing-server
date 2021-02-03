@@ -130,7 +130,7 @@ export class OrderService implements IOrderService {
           throw new BadRequest(null, "Your order has been cancelled");
         }
 
-        if (existingOrder.status === OrderStatus.SUCCESS) {
+        if (existingOrder.status === OrderStatus.COMPLETED) {
           throw new BadRequest(null, "Your order has been processed");
         }
 
@@ -160,7 +160,7 @@ export class OrderService implements IOrderService {
         //update order
         const updatedOrder = await this.orderRepo.updateOrder(rs, {
           id: existingOrder.id,
-          status: OrderStatus.SUCCESS,
+          status: OrderStatus.COMPLETED, 
           updatedAt: new Date()
         });
 
@@ -179,7 +179,7 @@ export class OrderService implements IOrderService {
         throw new BadRequest(null, "Order not exist");
       }
 
-      if (existingOrder.status === OrderStatus.SUCCESS) {
+      if (existingOrder.status === OrderStatus.COMPLETED) {
         throw new BadRequest(null, "Your order has been processed");
       }
 
