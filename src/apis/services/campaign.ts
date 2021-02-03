@@ -9,14 +9,16 @@ import { IUserRepo } from '../repositories/user';
 import { CampaignStatus } from '@/enums/campaignStatus';
 import { IFanPageRepo } from '../repositories/fanpage';
 import { compare } from 'bcrypt';
+import { Member } from '@/models/fanpage';
 
 
 export interface ICampaignService {
   getAllCampaigns(rs: RequestScope): Promise<any[]>;
-  create(rs: RequestScope, fanpage: Campaign): Promise<Campaign>;
+  create(rs: RequestScope, campaign: Campaign, memberUIDs: string[]): Promise<Campaign>;
   startCampaign(rs: RequestScope, campaignId: number): Promise<Campaign>
   updateSuccessPart(rs: RequestScope, campaignId: number, success: number): Promise<Campaign>;
   forceComplete(rs: RequestScope, campaignId: number): Promise<Campaign>;
+  getCampaignMembers(rs: RequestScope, campaignId: number): Promise<Member[]>;
 }
 
 @injectable()
@@ -37,19 +39,33 @@ export class CampaignService implements ICampaignService {
     }
   }
 
-  async create(rs: RequestScope, campaign: Campaign): Promise<Campaign> {
+  async create(rs: RequestScope, campaign: Campaign, memberUIDs: string[]): Promise<Campaign> {
     try {
       const userId = rs.identity.getID();
       const fanPage = this.fanPageRepo.getOneByUserId(rs, userId, campaign.pageId);
-      if(!fanPage){
+      if (!fanPage) {
         throw new InternalServerError(null, "Fanpage not exist");
       }
 
-      console.log(campaign);
+      const memberIds = await this.fanPageRepo.getPageMemberIds(rs, campaign.pageId, memberUIDs);
+
+      if (memberIds.length !== memberUIDs.length) {
+        throw new InternalServerError(null, "Members does not match fully");
+      }
 
       const response = rs.db.withTransaction<Campaign>(async () => {
         campaign.creatorId = userId;
         const newCampaign = await this.campaignRepo.create(rs, campaign);
+        if (!newCampaign || !newCampaign.id) {
+          throw new InternalServerError(null, "Fail to create campaign");
+        }
+
+        const linkMembers = await this.campaignRepo.linkMembers(
+          rs,
+          newCampaign.id,
+          memberIds,
+        );
+
         return newCampaign;
       });
 
@@ -65,6 +81,19 @@ export class CampaignService implements ICampaignService {
       if (!campaign) {
         throw new InternalServerError(null, "Campaign not exist");
       }
+
+      const userPlan = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
+      if (!userPlan) {
+        throw new InternalServerError(null, "User Plan not found");
+      }
+
+      const members = await this.campaignRepo.getCampaignMembers(rs, campaignId);
+
+      // check if user is enable to send such an amount messages
+      if (members.length > userPlan.totalMessages) {
+        throw new InternalServerError(null, "Your account run out of budget")
+      }
+
       const response = rs.db.withTransaction<Campaign>(async () => {
         const updatedCampaign = await this.campaignRepo.update(rs, {
           id: campaignId,
@@ -74,7 +103,7 @@ export class CampaignService implements ICampaignService {
         return updatedCampaign;
       });
 
-      
+
       return response;
     } catch (error) {
       throw error;
@@ -133,6 +162,22 @@ export class CampaignService implements ICampaignService {
       });
 
       return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCampaignMembers(rs: RequestScope, campaignId: number): Promise<Member[]> {
+    try {
+      const campaign = await this.campaignRepo.getCampaignById(rs, campaignId);
+
+      if (!campaign.id) {
+        throw new InternalServerError(null, "Campain does not exist");
+      }
+
+      const members = await this.campaignRepo.getCampaignMembers(rs, campaignId);
+
+      return members;
     } catch (error) {
       throw error;
     }
