@@ -9,6 +9,7 @@ import { IUserRepo } from '../repositories/user';
 import { IFanPageRepo } from '../repositories/fanpage';
 import { ICampaignRepo } from '../repositories/campaign';
 import { IOrderRepo } from '../repositories/order';
+import { CampaignStatus } from '@/enums/campaignStatus';
 
 export interface IUserService {
   getUserInfo(rs: RequestScope, userId: string): Promise<UserInfo>;
@@ -41,8 +42,8 @@ export class UserService implements IUserService {
     try{
         const pageCount = await this.fanpageRepo.countPageByUser(rs, userId);
         const userPlan = await this.userRepo.getUserPlanDetailById(rs, userId);
-        const runningCampaign = await this.campaignRepo.countRunningCampaignByUserId(rs, userId);
-        const completedCampaign = await this.campaignRepo.countCompletedCampaignByUserId(rs, userId);
+        const runningCampaign = await this.campaignRepo.countCampaignByStatus(rs, userId, CampaignStatus.RUNNING);
+        const completedCampaign = await this.campaignRepo.countCampaignByStatus(rs, userId, CampaignStatus.COMPLETED);
         const recentCampaign = await this.campaignRepo.getAllByCreatorIdPaging(rs,userId, 5, 0);
         const recentOrder = await this.orderRepo.getOrdersByUserIdPaging(rs,userId, 5 , 0);
 

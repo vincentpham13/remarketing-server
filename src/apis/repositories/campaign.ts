@@ -7,8 +7,7 @@ export interface ICampaignRepo {
   getAllByCreatorId(rs: RequestScope, creatorId: string): Promise<Campaign[]>;
   getCampaignById(rs: RequestScope, campaignId: number): Promise<Campaign>;
   getAllByCreatorIdPaging(rs: RequestScope, creatorId: string, limit: number, offset: number, orderByRaw?: string): Promise<Campaign[]>;
-  countRunningCampaignByUserId(rs: RequestScope, userId: string): Promise<any>;
-  countCompletedCampaignByUserId(rs: RequestScope, userId: string): Promise<any>;
+  countCampaignByStatus(rs: RequestScope, userId: string, status: string): Promise<number>;
   getAllByPageId(rs: RequestScope, creatorId: string, pageId: string): Promise<Campaign[]>;
   create(rs: RequestScope, campaign: Campaign): Promise<Campaign>;
   update(rs: RequestScope, campaign: CampaignUpdate): Promise<Campaign>;
@@ -37,27 +36,15 @@ export class CampaignRepo implements ICampaignRepo {
     return campaigns;
   }
 
-  async countRunningCampaignByUserId(rs: RequestScope, userId: string): Promise<any> {
+  async countCampaignByStatus(rs: RequestScope, userId: string, status: string): Promise<number> {
     rs.db.prepare();
-
-    const result: any = await rs.db.queryBuilder
+    const { count } = await rs.db.queryBuilder
       .count('id',{ as: 'count'})
       .from<Campaign>("campaign")
-      .where("status", 'running')
+      .where("status", status)
       .where("creator_id", userId)
       .first();
-    return result.count;
-  }
-
-  async countCompletedCampaignByUserId(rs: RequestScope, userId: string): Promise<any> {
-    rs.db.prepare();
-    const result: any = await rs.db.queryBuilder
-      .count('id',{ as: 'count'})
-      .from<Campaign>("campaign")
-      .where("status", 'completed')
-      .where("creator_id", userId)
-      .first();
-    return result.count;
+    return count;
   }
 
   async getCampaignById(rs: RequestScope, campaignId: number): Promise<Campaign> {
