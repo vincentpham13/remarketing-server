@@ -6,11 +6,11 @@ export interface Campaign {
   createdAt?: Date;
   startedAt?: Date;
   message: string;
-  memberIds: string;
   totalMessages: number;
   successMessages?: number;
   filteredBy?: string;
   status?: string;
+  memberUids?: string[];
 }
 
 export interface CampaignUpdate {

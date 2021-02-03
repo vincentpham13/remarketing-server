@@ -33,21 +33,20 @@ class CampaignController implements interfaces.Controller {
       const {
         name,
         pageId,
-        totalMessages,
-        memberIds,
+        memberUIDs,
         message
       } = req.body;
-      if (!name || !pageId || !totalMessages || !memberIds || !message) {
+
+      if (!name || !pageId || !memberUIDs?.length || !message) {
         throw new BadRequest(null, "Invalid request body");
       }
 
       const response = await this.campaignService.create(req.requestScope, {
         name: name,
         pageId: pageId,
-        totalMessages: totalMessages,
-        memberIds,
+        totalMessages: memberUIDs.length,
         message
-      });
+      }, memberUIDs);
 
       res.status(200).json(response);
     } catch (error) {
@@ -106,6 +105,23 @@ class CampaignController implements interfaces.Controller {
 
       const parsedCampaignId = parseInt(campaignId, 10);
       const response = await this.campaignService.forceComplete(req.requestScope, parsedCampaignId);
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+  @httpGet('/:campaignId/members')
+  private async getCampaignMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { campaignId } = req.params;
+      if (!campaignId) {
+        throw new BadRequest(null, "Missing param");
+      }
+
+      const parsedCampaignId = parseInt(campaignId, 10);
+      const response = await this.campaignService.getCampaignMembers(req.requestScope, parsedCampaignId);
 
       res.status(200).json(response);
     } catch (error) {

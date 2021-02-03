@@ -8,6 +8,7 @@ export interface IFanPageRepo {
   getAll(rs: RequestScope): Promise<FanPage[]>;
   getAllByUserId(rs: RequestScope, userId: string): Promise<FanPage[]>;
   getOneByUserId(rs: RequestScope, userId: string, pageId: string): Promise<FanPage>;
+  getPageMemberIds(rs: RequestScope, pageId: string, memberUIDs: string[]): Promise<number[]>;
   create(rs: RequestScope, userId: string, fanpage: FanPage): Promise<FanPage>;
   link(rs: RequestScope, userId: string, fanpageId: string): Promise<void>;
   importedMember(rs: RequestScope, member: Member): Promise<Member>;
@@ -49,6 +50,18 @@ export class FanPageRepo implements IFanPageRepo {
       .where("page.id", pageId)
       .first();
     return fanpage;
+  }
+
+  async getPageMemberIds(rs: RequestScope, pageId: string, memberUIDs: string[]): Promise<number[]> {
+    rs.db.prepare();
+
+    const pageMembers = await rs.db.queryBuilder
+      .select("id")
+      .from("page_member")
+      .where("page_id", pageId)
+      .whereIn("uid", memberUIDs);
+      
+    return pageMembers.map(mem => mem.id);
   }
 
   async create(rs: RequestScope, userId: string, fanpage: FanPage): Promise<FanPage> {
