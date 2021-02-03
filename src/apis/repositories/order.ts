@@ -3,7 +3,6 @@ import { injectable } from 'inversify';
 import { RequestScope } from '@/models/request';
 import { Order, OrderCreate, OrderPackage, OrderUpdate } from '@/models/order';
 import { off } from 'process';
-import { StringMappingType } from 'typescript';
 
 export interface IOrderRepo {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
