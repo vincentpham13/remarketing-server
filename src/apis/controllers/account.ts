@@ -46,6 +46,19 @@ class AccountController implements interfaces.Controller {
     }
   }
 
+  @httpGet('/dashboard-info')
+  private async updateUserDashboardInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.requestScope.identity.getID();
+      const response = await this.userService.getUserDashboardInfo(req.requestScope, userId);
+      res.status(200).json(response);
+
+    } catch (error) {
+      next(new InternalServerError(error));
+    }
+  }
+
+
   @httpPost('/test')
   private async test(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

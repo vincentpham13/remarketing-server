@@ -6,6 +6,9 @@ import { Campaign, CampaignUpdate } from '@/models/campaign';
 export interface ICampaignRepo {
   getAllByCreatorId(rs: RequestScope, creatorId: string): Promise<Campaign[]>;
   getCampaignById(rs: RequestScope, campaignId: number): Promise<Campaign>;
+  getAllByCreatorIdPaging(rs: RequestScope, creatorId: string, limit: number, offset: number, orderByRaw?: string): Promise<Campaign[]>;
+  countRunningCampaignByUserId(rs: RequestScope, userId: string): Promise<any>;
+  countCompletedCampaignByUserId(rs: RequestScope, userId: string): Promise<any>;
   getAllByPageId(rs: RequestScope, creatorId: string, pageId: string): Promise<Campaign[]>;
   create(rs: RequestScope, campaign: Campaign): Promise<Campaign>;
   update(rs: RequestScope, campaign: CampaignUpdate): Promise<Campaign>;
@@ -21,6 +24,41 @@ export class CampaignRepo implements ICampaignRepo {
       .where("creator_id", creatorId);
     return campaigns;
   }
+  
+  async getAllByCreatorIdPaging(rs: RequestScope, creatorId: string, limit: number, offset: number, orderByRaw?: string): Promise<Campaign[]> {
+    rs.db.prepare();
+    const campaigns = await rs.db.queryBuilder
+      .select(["campaign.*"])
+      .from<Campaign>("campaign")
+      .where("creator_id", creatorId)
+      .limit(limit)
+      .offset(offset)
+      .orderByRaw(orderByRaw ? orderByRaw : 'created_at DESC');
+    return campaigns;
+  }
+
+  async countRunningCampaignByUserId(rs: RequestScope, userId: string): Promise<any> {
+    rs.db.prepare();
+
+    const result: any = await rs.db.queryBuilder
+      .count('id',{ as: 'count'})
+      .from<Campaign>("campaign")
+      .where("status", 'running')
+      .where("creator_id", userId)
+      .first();
+    return result.count;
+  }
+
+  async countCompletedCampaignByUserId(rs: RequestScope, userId: string): Promise<any> {
+    rs.db.prepare();
+    const result: any = await rs.db.queryBuilder
+      .count('id',{ as: 'count'})
+      .from<Campaign>("campaign")
+      .where("status", 'completed')
+      .where("creator_id", userId)
+      .first();
+    return result.count;
+  }
 
   async getCampaignById(rs: RequestScope, campaignId: number): Promise<Campaign> {
     rs.db.prepare();
@@ -28,7 +66,7 @@ export class CampaignRepo implements ICampaignRepo {
       .select(["campaign.*"])
       .from<Campaign>("campaign")
       .where("id", campaignId)
-      // .where("creator_id", creatorId)
+      .where("creator_id", creatorId)
       .first();
     return campaign;
   }
