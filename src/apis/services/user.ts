@@ -38,7 +38,7 @@ export class UserService implements IUserService {
   async updateUserInfo(rs: RequestScope, user: User): Promise<User> {
     try {
       return rs.db.withTransaction<User>(async () => {
-        return await this.userRepo.updateUserInfo(rs, user);
+        return await this.userRepo.updateUserInfo(rs, {...user, id: rs.identity.getID()});
       });
     } catch (error) {
       throw error;

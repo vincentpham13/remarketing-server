@@ -28,6 +28,8 @@ export interface UserInfo {
   phone?: string;
   job?: string;
   roleId?: number;
+  packageId: number;
+  packageName: string;
   totalMessages: number;
   successMessages: number;
   validTo: Date;
