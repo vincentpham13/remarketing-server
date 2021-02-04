@@ -10,7 +10,7 @@ import {
 import { IUserService } from '../services/user'
 import { BadRequest, InternalServerError } from '@/utils/http';
 import { inject } from 'inversify';
-import { UserRole } from '@/enums/userRole';
+
 @controller('/account', AuthMiddleware())
 class AccountController implements interfaces.Controller {
   constructor(
@@ -34,7 +34,7 @@ class AccountController implements interfaces.Controller {
   private async updateUserInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userInfo = req.body;
-      if (!userInfo || !userInfo.id) {
+      if (!userInfo) {
         throw new BadRequest(null, "Invalid request body");
       }
       

@@ -41,7 +41,7 @@ export class UserRepo implements IUserRepo {
 
     const user = await rs.db.queryBuilder
       .select([
-        "u.id",
+        "u.id as id",
         "u.name",
         "u.email",
         "u.phone",
@@ -50,6 +50,8 @@ export class UserRepo implements IUserRepo {
         "upl.total_messages",
         "upl.success_messages",
         "upl.valid_to",
+        "p.id as package_id",
+        "p.label as package_name",
       ])
       .from<User>("user as u")
       .leftJoin("user_plan as upl", "upl.user_id", "=", "u.id")

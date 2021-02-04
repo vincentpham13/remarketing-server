@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction, CookieOptions } from 'express';
 import { inject } from 'inversify';
 import { interfaces, controller, httpGet, httpPost } from "inversify-express-utils";
-import cookieParser from 'cookie-parser';
 
 import { IAuth } from '../../apis/services/auth';
 import TYPES from '../../inversify/TYPES';
@@ -13,7 +12,6 @@ import {
   Unauthorized
 } from '@/utils/http';
 import { decodeJwtToken } from '@/utils/jwt';
-import { UserRole } from '@/enums/userRole';
 
 const options: CookieOptions = {
   maxAge: 1000 * 60 * 60 * 24 * 30, // would expire after 1month
