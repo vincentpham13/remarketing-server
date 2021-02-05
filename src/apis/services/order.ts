@@ -85,12 +85,12 @@ export class OrderService implements IOrderService {
 
         //create order package
         const createPackagePromises = packageIds.map(packageId => this.orderRepo.createOrderPackage(rs, {
-          orderId: parseInt(newOrder.id, 10),
+          orderId: newOrder.id,
           packageId
         }));
         await Promise.all(createPackagePromises);
 
-        return newOrder;
+        return await this.orderRepo.getOrderById(rs, newOrder.id);
       });
     } catch (error) {
       throw error;
@@ -99,7 +99,7 @@ export class OrderService implements IOrderService {
 
   async updateOrder(rs: RequestScope, order: OrderUpdate, packageIds: number[]): Promise<Order> {
     try {
-      const existingOrder = await this.orderRepo.getOrderById(rs, parseInt(order.id, 10));
+      const existingOrder = await this.orderRepo.getOrderById(rs, order.id);
       if (!existingOrder) {
         throw new BadRequest(null, "Order not exist");
       }
