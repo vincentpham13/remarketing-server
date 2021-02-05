@@ -25,11 +25,14 @@ export interface OrderPromotion {
 }
 export interface InvalidPromotion {
   promotionCode: string;
-  invalidType: number;
+  error: {
+    message: string,
+    code: number
+  }
 }
 
 export function instanceOfInvalidPromotion(data: any): data is InvalidPromotion { 
-  return 'promotionCode' in data &&  'invalidType' in data; 
+  return 'promotionCode' in data &&  'error' in data; 
 } 
 export interface PromotionUpdate {
   id: number;
