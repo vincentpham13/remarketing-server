@@ -1,7 +1,7 @@
 import { Package } from "./package";
 
 export interface Order {
-  id: string;
+  id: number;
   userId: string;
   status: string;
   createdAt?: Date;
@@ -31,7 +31,7 @@ export interface OrderCreate {
 }
 
 export interface OrderUpdate {
-  id: string;
+  id: number;
   [key: string]: string | number | Date;
 }
 
