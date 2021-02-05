@@ -60,9 +60,8 @@ class OrderController implements interfaces.Controller {
         businessAddress,
         emailReceipt,
         taxId,
-        status: OrderStatus.PENDING,
-        promotionIds
-      },packageIds);
+        status: OrderStatus.Pending,
+      },packageIds, promotionIds);
 
       res.status(200).json(response);
     } catch (error) {

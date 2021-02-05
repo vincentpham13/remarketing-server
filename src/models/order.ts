@@ -15,6 +15,7 @@ export interface Order {
   emailReceipt?: string;
   taxId?: string;
   packages?: Package[];
+  promotionIds?: number[];
 }
 
 export interface OrderCreate {
@@ -28,7 +29,6 @@ export interface OrderCreate {
   businessAddress?: string;
   emailReceipt?: string;
   taxId?: string;
-  promotionIds?: number[];
 }
 
 export interface OrderUpdate {

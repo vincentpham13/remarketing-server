@@ -1,6 +1,6 @@
 export enum CampaignStatus{
-    PENDING  = 'pending',
-    RUNNING = 'running',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled'
+    Pending  = 'pending',
+    Running = 'running',
+    Completed = 'completed',
+    Cancelled = 'Cancelled'
 }

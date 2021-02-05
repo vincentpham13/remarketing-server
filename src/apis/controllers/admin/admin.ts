@@ -12,9 +12,6 @@ import { UserRole } from '@/enums/userRole';
 import { IUserService } from '@/apis/services/user';
 import { IPackageService } from '@/apis/services/package';
 import { IOrderService } from '@/apis/services/order';
-import { OrderStatus } from '@/enums/orderStatus';
-import { RequestScope } from '@/models/request';
-import { stat } from 'fs';
 import { PackageType } from '@/enums/package';
 import { IPromotionService } from '@/apis/services/promotion';
 
@@ -44,6 +41,16 @@ class AdminController implements interfaces.Controller {
   private async getPackages(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
       const response = await this.packageService.getAllPackages(req.requestScope);
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error, ""));
+    }
+  }
+
+  @httpGet('/promotions')
+  private async getPromotions(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const response = await this.promotionService.getAllPromotion(req.requestScope);
       res.status(200).json(response);
     } catch (error) {
       next(new InternalServerError(error, ""));
@@ -226,15 +233,15 @@ class AdminController implements interfaces.Controller {
         code,
         description,
         quantity,
-        validPackages,
+        validPackageIds,
         monthDuration,
         messageAmount,
         validPrice,
         canUseWithOther,
         validTo,
       } = req.body;
-      console.log(req.body,monthDuration,messageAmount);
-      if (!code || (!monthDuration && !messageAmount) || !validTo) {
+      
+      if (!code || !quantity || (!monthDuration && !messageAmount) || !validTo) {
         throw new BadRequest(null, "Invalid promotion");
       }
 
@@ -242,7 +249,7 @@ class AdminController implements interfaces.Controller {
         code,
         description,
         quantity,
-        validPackages,
+        validPackageIds,
         monthDuration,
         messageAmount,
         validPrice,
@@ -266,7 +273,7 @@ class AdminController implements interfaces.Controller {
         code,
         description,
         quantity,
-        validPackages,
+        validPackageIds,
         monthDuration,
         messageAmount,
         validPrice,
@@ -282,12 +289,13 @@ class AdminController implements interfaces.Controller {
         code,
         description,
         quantity,
-        validPackages,
+        validPackageIds,
         monthDuration,
         messageAmount,
         validPrice,
         canUseWithOther,
         validTo,
+        updatedAt: new Date()
       });
       res.status(200).json(response);
     } catch (error) {

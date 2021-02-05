@@ -10,11 +10,10 @@ import { InvalidPromotionType } from '@/enums/promotion';
 
 export interface IPromotionService {
   getAllPromotion(rs: RequestScope): Promise<Promotion[]>;
-  getPromotionById(rs: RequestScope, promotionId: number): Promise<Promotion>;
   getPromotionByCode(rs: RequestScope, promotionCode: string): Promise<Promotion>;
   createPromotion(rs: RequestScope, promotion: Promotion): Promise<Promotion>;
   updatePromotion(rs: RequestScope, promotion: PromotionUpdate): Promise<Promotion>;
-  checkValidPromotions(promotion: Promotion, packageIds?: number[], orderPrice?: number): Promise<InvalidPromotion | boolean>;
+  checkValidPromotions(promotions: Promotion[], packageIds?: number[], orderPrice?: number): InvalidPromotion[] | Promotion[];
 }
 
 @injectable()
@@ -31,48 +30,47 @@ export class PromotionService implements IPromotionService {
     }
   }
 
-  async checkValidPromotions(promotion: Promotion, packageIds?: number[], orderPrice?: number): Promise<InvalidPromotion | boolean> {
-
-    if (promotion.validTo > new Date()) {
-      return {
-        promotionCode: promotion.code,
-        inValidType: InvalidPromotionType.EXPRIRED
-      };
+  checkValidPromotions(promotions: Promotion[], packageIds?: number[], orderPrice?: number): InvalidPromotion[] | Promotion[] {
+    let invalidPromotions = Array<InvalidPromotion>();
+    for(let i = 0; i < promotions.length; i++){
+      let promotion = promotions[i];
+      if (promotion.validTo < new Date()) {
+        invalidPromotions.push({
+          promotionCode: promotion.code,
+          invalidType: InvalidPromotionType.Expired
+        });
+        continue;
+      }
+  
+      if (promotion.quantity <= 0) {
+        invalidPromotions.push({
+          promotionCode: promotion.code,
+          invalidType: InvalidPromotionType.OutOfStock
+        });
+        continue;
+      }
+  
+      if (promotion.validPackageIds && packageIds
+        && !packageIds.every(packageId => promotion.validPackageIds?.includes(packageId))) {
+        invalidPromotions.push({
+          promotionCode: promotion.code,
+          invalidType: InvalidPromotionType.InvalidPackage
+        });
+      }
+  
+      if (promotion.validPrice && orderPrice && promotion.validPrice > orderPrice) {
+        invalidPromotions.push({
+          promotionCode: promotion.code,
+          invalidType: InvalidPromotionType.InvalidPrice
+        });
+      }
     }
-
-    if (promotion.quantity <= 0) {
-      return {
-        promotionCode: promotion.code,
-        inValidType: InvalidPromotionType.OUT_OF_STOCK
-      };
+    if(invalidPromotions.length > 0){
+      return invalidPromotions;
     }
-
-    if (promotion.validPackages && packageIds
-      && !packageIds.every(packageId => promotion.validPackages?.includes(packageId))) {
-      return {
-        promotionCode: promotion.code,
-        inValidType: InvalidPromotionType.OUT_OF_VALID_PACKAGES
-      };
-    }
-
-    if (promotion.validPrice && orderPrice && promotion.validPrice > orderPrice) {
-      return {
-        promotionCode: promotion.code,
-        inValidType: InvalidPromotionType.INVALID_PRICE
-      };
-    }
-    return true;
     
-  }
-
-
-  async getPromotionById(rs: RequestScope, promotionId: number): Promise<Promotion> {
-    try {
-      const promotion = await this.promotionRepo.getPromotionById(rs, promotionId);
-      return promotion;
-    } catch (error) {
-      throw error;
-    }
+    return promotions;
+    
   }
 
   async getPromotionByCode(rs: RequestScope, promotionCode: string): Promise<Promotion> {
@@ -87,7 +85,7 @@ export class PromotionService implements IPromotionService {
   async createPromotion(rs: RequestScope, promotion: Promotion): Promise<Promotion> {
     try {
       return rs.db.withTransaction<Promotion>(async () => {
-        const existingPromotion = this.promotionRepo.getPromotionByCode(rs, promotion.code);
+        const existingPromotion = await this.promotionRepo.getPromotionByCode(rs, promotion.code);
         if(existingPromotion){
           throw new BadRequest(null, "Promotion code already exist");
         }
@@ -101,6 +99,10 @@ export class PromotionService implements IPromotionService {
   async updatePromotion(rs: RequestScope, promotion: PromotionUpdate): Promise<Promotion> {
     try {
       return rs.db.withTransaction<Promotion>(async () => {
+        const existingPromotion = await this.promotionRepo.getPromotionByCode(rs, promotion.code.toString());
+        if(existingPromotion && existingPromotion.id != promotion.id){
+          throw new BadRequest(null, "Promotion code already exist");
+        }
         return await this.promotionRepo.updatePromotion(rs, promotion);
       });
     } catch (error) {
@@ -114,20 +116,6 @@ export class PromotionService implements IPromotionService {
         return await this.promotionRepo.createOrderPromotion(rs, {
           orderId,
           promotionId
-        });
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async applyOrderPromotion(rs: RequestScope, orderId: number, promotionId: number) {
-    try {
-      return rs.db.withTransaction<Promotion>(async () => {
-        return await this.promotionRepo.createOrderPromotion(rs, {
-          orderId,
-          promotionId,
-          appliedAt: new Date()
         });
       });
     } catch (error) {
