@@ -12,12 +12,13 @@ import { IPackageRepo } from '../repositories/package';
 import { Package, PackageType } from '@/enums/package';
 import { IPromotionRepo } from '../repositories/promotion';
 import { IPromotionService } from './promotion';
+import { instanceOfInvalidPromotion, InvalidPromotion} from '@/models/promotion';
 
 export interface IOrderService {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
   getOrderId(rs: RequestScope, id: number): Promise<Order>;
   getOrdersByUserId(rs: RequestScope, userId: string): Promise<Order[]>;
-  createOrder(rs: RequestScope, order: OrderCreate, packageIds: number[]): Promise<Order>;
+  createOrder(rs: RequestScope, order: OrderCreate, packageIds: number[], promotionIds: number[]): Promise<Order>;
   updateOrder(rs: RequestScope, order: OrderUpdate, packageIds: number[]): Promise<Order>;
   confirmOrder(rs: RequestScope, orderId: number): Promise<Order>;
   cancelOrder(rs: RequestScope, orderId: number): Promise<Order>;
@@ -64,7 +65,7 @@ export class OrderService implements IOrderService {
     }
   }
 
-  async createOrder(rs: RequestScope, order: OrderCreate, packageIds: number[]): Promise<Order> {
+  async createOrder(rs: RequestScope, order: OrderCreate, packageIds: number[], promotionIds: number[]): Promise<Order> {
     try {
       return await rs.db.withTransaction<Order>(async () => {
 
@@ -95,21 +96,33 @@ export class OrderService implements IOrderService {
           packageId
         }));
         await Promise.all(createPackagePromises);
-
-        if(order.promotionIds){
+        if(promotionIds){
           const orderPrice = await this.packageRepo.getTotalPriceByIds(rs, packageIds);
-          for(let i = 0; i < order.promotionIds.length; i++){
-            const promotionId = order.promotionIds[i];
-            const promotion = await this.promotionRepo.getPromotionById(rs, promotionId);
-              if(await this.promotionService.checkValidPromotions(promotion,packageIds,orderPrice) !== true){
-                throw new BadRequest(null, "Invalid promotion");
-              }
+          const promotions = await this.promotionRepo.getPromotionsByIds(rs, promotionIds);  
+          const invalidPromotions = this.promotionService.checkValidPromotions(promotions,packageIds,orderPrice);
+          console.log(invalidPromotions);
+          if(invalidPromotions.length && instanceOfInvalidPromotion(invalidPromotions[0])){
+            throw new BadRequest(null, "Invalid promotion");
           }
-          const createOrderPromises = order.promotionIds.map(promotionId => this.promotionRepo.createOrderPromotion(rs, {
-            orderId: newOrder.id,
-            promotionId 
-          }));
-          await Promise.all(createOrderPromises);
+
+          //update promotion quantity
+          const updateQuantityPromotionPromises = promotions.map(promotion => {
+            if(promotion.id){
+              
+              //create order promotion
+              this.promotionRepo.createOrderPromotion(rs, {
+                orderId: newOrder.id,
+                promotionId: promotion.id,
+                monthDuration: promotion.monthDuration,
+                messageAmount: promotion.messageAmount
+              });
+              this.promotionRepo.updatePromotion(rs, {
+                id: promotion.id,
+                quantity: promotion.quantity -1
+              });
+            }   
+          });
+          await Promise.all(updateQuantityPromotionPromises);
         }
 
         return await this.orderRepo.getOrderById(rs, newOrder.id);
@@ -148,11 +161,11 @@ export class OrderService implements IOrderService {
           throw new InternalServerError(null, "Order does not exist");
         }
 
-        if (existingOrder.status === OrderStatus.CANCELLED) {
+        if (existingOrder.status === OrderStatus.Cancelled) {
           throw new BadRequest(null, "Your order has been cancelled");
         }
 
-        if (existingOrder.status === OrderStatus.SUCCESS) {
+        if (existingOrder.status === OrderStatus.Success) {
           throw new BadRequest(null, "Your order has been processed");
         }
 
@@ -168,10 +181,25 @@ export class OrderService implements IOrderService {
           if (orderPackage.packageTypeId === PackageType.TimeAndMessage) {
             addMonthDuration += orderPackage.monthDuration;
           }
-
           addMessageAmount += orderPackage.messageAmount * Package.MessageCountUnit;
         }
 
+
+        //apply promotion
+        const orderPromotions = await this.promotionRepo.getValidOrderPromotionsByOrder(rs,orderId);
+        if(orderPromotions){
+          for(let i = 0; i < orderPromotions.length; i++){
+            let orderPromotion = orderPromotions[i];
+            addMonthDuration += orderPromotion.monthDuration ?? 0;
+            addMessageAmount += orderPromotion.messageAmount ?? 0;
+            await this.promotionRepo.updateOrderPromotion(rs, {
+              orderId,
+              promotionId: orderPromotion.promotionId,
+              appliedAt: new Date()
+            });
+          }
+        }
+        
         //update user plan
         await this.userRepo.updateUserPlan(rs, {
           userId: existingOrder.userId,
@@ -182,7 +210,7 @@ export class OrderService implements IOrderService {
         //update order
         const updatedOrder = await this.orderRepo.updateOrder(rs, {
           id: existingOrder.id,
-          status: OrderStatus.SUCCESS,
+          status: OrderStatus.Success,
           updatedAt: new Date()
         });
 
@@ -201,11 +229,11 @@ export class OrderService implements IOrderService {
         throw new BadRequest(null, "Order not exist");
       }
 
-      if (existingOrder.status === OrderStatus.SUCCESS) {
+      if (existingOrder.status === OrderStatus.Success) {
         throw new BadRequest(null, "Your order has been processed");
       }
 
-      if (existingOrder.status === OrderStatus.CANCELLED) {
+      if (existingOrder.status === OrderStatus.Cancelled) {
         throw new BadRequest(null, "Your order has been cancelled");
       }
 
@@ -213,7 +241,7 @@ export class OrderService implements IOrderService {
 
         const updatedOrder = await this.orderRepo.updateOrder(rs, {
           id: existingOrder.id,
-          status: OrderStatus.CANCELLED,
+          status: OrderStatus.Cancelled,
           updatedAt: new Date()
         })
 

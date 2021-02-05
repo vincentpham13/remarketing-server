@@ -38,6 +38,7 @@ export class PackageRepo implements IPackageRepo {
 
     const result: any =  await rs.db.queryBuilder
       .sum({totalPrice: "price"})
+      .from<Package>("package")
       .whereIn("id", packageIds)
     if(result && result.totalPrice){
       return result.totalPrice as number;

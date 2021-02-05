@@ -8,7 +8,7 @@ export async function up(knex: Knex): Promise<void> {
             code character varying(100) NOT NULL,
             description character varying(100),
             quantity bigint NOT NULL default 0,
-            valid_packages bigint[],
+            valid_package_ids integer[],
             month_duration integer,
             message_amount integer,
             valid_price integer,
@@ -28,6 +28,8 @@ export async function up(knex: Knex): Promise<void> {
             constraint order_promotion_promotion_id_fk
                 references public.promotion,
             applied_at timestamp without time zone,
+            month_duration integer,
+            message_amount integer,
             constraint order_promotion_pk
             primary key (order_id, promotion_id)
         );
@@ -37,5 +39,9 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
+    await knex.schema.raw(`
+        drop table if exists public.order_promotion;
+        drop table if exists public.promotion;
+    `);
 }
 

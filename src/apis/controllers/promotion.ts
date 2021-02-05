@@ -20,6 +20,11 @@ class PromotionController implements interfaces.Controller {
   private async getPromotions(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
       const {promotionCode} = req.params;
+
+      if(!promotionCode){
+        throw new BadRequest(null,"missing promotion code");
+      }
+
       const response = await this.promotionService.getPromotionByCode(req.requestScope, promotionCode);
       res.status(200).json(response);
     } catch (error) {
@@ -34,6 +39,9 @@ class PromotionController implements interfaces.Controller {
         promotionCode,
       } = req.params;
 
+      if(!promotionCode){
+        throw new BadRequest(null,"missing promotion code");
+      }
 
       const {
         packageIds,
@@ -45,7 +53,7 @@ class PromotionController implements interfaces.Controller {
         throw new BadRequest(null, "Promotion not exist");
       }
 
-      const response = await this.promotionService.checkValidPromotions(promotion, packageIds, orderPrice);
+      const response = await this.promotionService.checkValidPromotions([promotion], packageIds, orderPrice);
       res.status(200).json(response);
     } catch (error) {
       next(new InternalServerError(error, ""));

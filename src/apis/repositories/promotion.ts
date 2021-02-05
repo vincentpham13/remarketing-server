@@ -6,10 +6,11 @@ import { Order } from '@/models/order';
 
 export interface IPromotionRepo {
   getAllPromotion(rs: RequestScope): Promise<Promotion[]>;
-  getPromotionById(rs: RequestScope, id: number): Promise<Promotion>;
+  getPromotionsByIds(rs: RequestScope, ids: number[]): Promise<Promotion[]>;
   getPromotionByCode(rs: RequestScope, code: string): Promise<Promotion>;
   createPromotion(rs: RequestScope, user: Promotion): Promise<Promotion>;
   updatePromotion(rs: RequestScope, promotion: PromotionUpdate): Promise<Promotion>;
+  getValidOrderPromotionsByOrder(rs: RequestScope, order_id: number): Promise<OrderPromotion[]>;
   createOrderPromotion(rs: RequestScope, orderPromotion: OrderPromotion): Promise<OrderPromotion>;
   updateOrderPromotion(rs: RequestScope, orderPromotion: OrderPromotion): Promise<OrderPromotion>;
 }
@@ -24,14 +25,13 @@ export class PromotionRepo implements IPromotionRepo {
       .from<Promotion>("promotion");
   }
 
-  async getPromotionById(rs: RequestScope, id: number): Promise<Promotion>{
+  async getPromotionsByIds(rs: RequestScope, ids: number[]): Promise<Promotion[]>{
     rs.db.prepare();
 
     return await rs.db.queryBuilder
       .select(["*"])
       .from<Promotion>("promotion")
-      .where("id", id)
-      .first();
+      .whereIn("id", ids);
   }
 
   async getPromotionByCode(rs: RequestScope, code: string): Promise<Promotion>{
@@ -63,6 +63,16 @@ export class PromotionRepo implements IPromotionRepo {
     return updated;
   }
 
+  async getValidOrderPromotionsByOrder(rs: RequestScope, order_id: number): Promise<OrderPromotion[]>{
+    rs.db.prepare();
+
+    return await rs.db.queryBuilder
+      .select(["po.*"])
+      .from<OrderPromotion>("order_promotion as po")
+      .where("po.order_id", order_id)
+      .whereNull("po.applied_at");
+  }
+
   async createOrderPromotion(rs: RequestScope, orderPromotion: OrderPromotion): Promise<OrderPromotion> {
     rs.db.prepare();
     const [inserted] = await rs.db.queryBuilder
@@ -76,7 +86,7 @@ export class PromotionRepo implements IPromotionRepo {
     const [updated] = await rs.db.queryBuilder
       .update(orderPromotion)
       .into<OrderPromotion>("order_promotion")
-      .where("protmotion_id", orderPromotion.promotionId)
+      .where("promotion_id", orderPromotion.promotionId)
       .where("order_id", orderPromotion.orderId)
       .returning("*");
     return updated;

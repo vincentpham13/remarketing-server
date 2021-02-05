@@ -97,7 +97,7 @@ export class CampaignService implements ICampaignService {
       const response = rs.db.withTransaction<Campaign>(async () => {
         const updatedCampaign = await this.campaignRepo.update(rs, {
           id: campaignId,
-          status: CampaignStatus.RUNNING,
+          status: CampaignStatus.Running,
           startedAt: new Date(),
         });
         return updatedCampaign;
@@ -124,7 +124,7 @@ export class CampaignService implements ICampaignService {
           "successMessages": newSuccessMessages,
         }
         if (newSuccessMessages === campaign.totalMessages) {
-          updateCampaign["status"] = CampaignStatus.COMPLETED;
+          updateCampaign["status"] = CampaignStatus.Completed;
         }
 
         const { successMessages } = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
@@ -154,7 +154,7 @@ export class CampaignService implements ICampaignService {
       const response = rs.db.withTransaction<Campaign>(async () => {
         const updateCampaign: CampaignUpdate = {
           id: campaignId,
-          "status": CampaignStatus.COMPLETED,
+          "status": CampaignStatus.Completed,
         }
 
         const updatedCampaign = await this.campaignRepo.update(rs, updateCampaign);
