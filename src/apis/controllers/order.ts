@@ -43,6 +43,7 @@ class OrderController implements interfaces.Controller {
         businessAddress,
         emailReceipt,
         taxId,
+        promotionIds
       } = req.body;
 
       if (!packageIds) {
@@ -59,7 +60,8 @@ class OrderController implements interfaces.Controller {
         businessAddress,
         emailReceipt,
         taxId,
-        status: OrderStatus.PENDING
+        status: OrderStatus.PENDING,
+        promotionIds
       },packageIds);
 
       res.status(200).json(response);

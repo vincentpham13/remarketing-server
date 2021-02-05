@@ -10,6 +10,8 @@ const TYPES = {
   PackageService: Symbol('PackageService'),
   OrderRepo: Symbol('OrderRepo'),
   OrderService: Symbol('OrderService'),
+  PromotionRepo: Symbol('PromotionRepo'),
+  PromotionService: Symbol('PromotionService'),
 }
 
 export default TYPES;

@@ -16,6 +16,7 @@ import { OrderStatus } from '@/enums/orderStatus';
 import { RequestScope } from '@/models/request';
 import { stat } from 'fs';
 import { PackageType } from '@/enums/package';
+import { IPromotionService } from '@/apis/services/promotion';
 
 @controller('/admin', AuthMiddleware(UserRole.Admin))
 class AdminController implements interfaces.Controller {
@@ -23,6 +24,7 @@ class AdminController implements interfaces.Controller {
     @inject(TYPES.UserService) private userService: IUserService,
     @inject(TYPES.PackageService) private packageService: IPackageService,
     @inject(TYPES.OrderService) private orderService: IOrderService,
+    @inject(TYPES.PromotionService) private promotionService: IPromotionService,
 
   ) {
 
@@ -215,6 +217,84 @@ class AdminController implements interfaces.Controller {
       next(new InternalServerError(error, ""));
     }
   }
+  
+  @httpPost('/promotions')
+  private async createPromotion(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+
+      const {
+        code,
+        description,
+        quantity,
+        validPackages,
+        monthDuration,
+        messageAmount,
+        validPrice,
+        canUseWithOther,
+        validTo,
+      } = req.body;
+      console.log(req.body,monthDuration,messageAmount);
+      if (!code || (!monthDuration && !messageAmount) || !validTo) {
+        throw new BadRequest(null, "Invalid promotion");
+      }
+
+      const response = await this.promotionService.createPromotion(req.requestScope, {
+        code,
+        description,
+        quantity,
+        validPackages,
+        monthDuration,
+        messageAmount,
+        validPrice,
+        canUseWithOther,
+        validTo,
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error, ""));
+    }
+  }
+
+  @httpPut('/promotions/:id')
+  private async updatePromotion(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequest(null, 'missing promotion id');
+      }
+      const {
+        code,
+        description,
+        quantity,
+        validPackages,
+        monthDuration,
+        messageAmount,
+        validPrice,
+        canUseWithOther,
+        validTo,
+      } = req.body;
+
+      if (!code || (!monthDuration && !messageAmount) || !validTo) {
+        throw new BadRequest(null, "Invalid promotion");
+      }
+      const response = await this.promotionService.updatePromotion(req.requestScope, {
+        id: parseInt(id,20),
+        code,
+        description,
+        quantity,
+        validPackages,
+        monthDuration,
+        messageAmount,
+        validPrice,
+        canUseWithOther,
+        validTo,
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      next(new InternalServerError(error, ""));
+    }
+  }
+  
 }
 
 export default AdminController;

@@ -17,6 +17,8 @@ import { IPackageRepo, PackageRepo } from '@/apis/repositories/package';
 import { IPackageService, PackageService } from '@/apis/services/package';
 import { IOrderRepo, OrderRepo } from '@/apis/repositories/order';
 import { IOrderService, OrderService } from '@/apis/services/order';
+import { IPromotionRepo, PromotionRepo } from '@/apis/repositories/promotion';
+import { IPromotionService, PromotionService } from '@/apis/services/promotion';
 
 const container = new Container();
 
@@ -42,5 +44,9 @@ container.bind<IPackageService>(TYPES.PackageService).to(PackageService).inSingl
 // order
 container.bind<IOrderRepo>(TYPES.OrderRepo).to(OrderRepo).inSingletonScope();
 container.bind<IOrderService>(TYPES.OrderService).to(OrderService).inSingletonScope();
+
+// promotion
+container.bind<IPromotionRepo>(TYPES.PromotionRepo).to(PromotionRepo).inSingletonScope();
+container.bind<IPromotionService>(TYPES.PromotionService).to(PromotionService).inSingletonScope();
 
 export default container;

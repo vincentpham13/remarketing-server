@@ -6,6 +6,7 @@ export interface IPackageRepo {
   getAllPackage(rs: RequestScope): Promise<Package[]>;
   getPackageById(rs: RequestScope, packageId: number): Promise<Package>;
   getPackagesByOrderId(rs: RequestScope, orderId: number): Promise<Package[]>;
+  getTotalPriceByIds(rs: RequestScope, packageIds: number[]): Promise<number>;
   createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package>;
   updatePackage(rs: RequestScope, packageId: number, packagePlan: PackageCreate): Promise<Package>;
   removePackage(rs: RequestScope, packageId: number): Promise<any>;
@@ -30,6 +31,18 @@ export class PackageRepo implements IPackageRepo {
       .from<Package>("package")
       .where("id", packageId)
       .first();
+  }
+
+  async getTotalPriceByIds(rs: RequestScope, packageIds: number[]): Promise<number> {
+    rs.db.prepare();
+
+    const result: any =  await rs.db.queryBuilder
+      .sum({totalPrice: "price"})
+      .whereIn("id", packageIds)
+    if(result && result.totalPrice){
+      return result.totalPrice as number;
+    }
+    return 0;
   }
 
   async getPackagesByOrderId(rs: RequestScope, orderId: number): Promise<Package[]> {
