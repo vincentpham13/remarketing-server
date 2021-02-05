@@ -28,6 +28,7 @@ export interface OrderCreate {
   businessAddress?: string;
   emailReceipt?: string;
   taxId?: string;
+  promotionIds?: number[];
 }
 
 export interface OrderUpdate {

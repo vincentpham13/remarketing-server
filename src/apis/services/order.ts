@@ -10,6 +10,8 @@ import { OrderStatus } from '@/enums/orderStatus';
 import { IUserRepo } from '../repositories/user';
 import { IPackageRepo } from '../repositories/package';
 import { Package, PackageType } from '@/enums/package';
+import { IPromotionRepo } from '../repositories/promotion';
+import { IPromotionService } from './promotion';
 
 export interface IOrderService {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
@@ -30,6 +32,10 @@ export class OrderService implements IOrderService {
   private userRepo: IUserRepo
   @inject(TYPES.PackageRepo)
   private packageRepo: IPackageRepo
+  @inject(TYPES.PromotionRepo)
+  private promotionRepo: IPromotionRepo
+  @inject(TYPES.PromotionService)
+  private promotionService: IPromotionService
 
   async getAllOrder(rs: RequestScope): Promise<Order[]> {
     try {
@@ -89,6 +95,22 @@ export class OrderService implements IOrderService {
           packageId
         }));
         await Promise.all(createPackagePromises);
+
+        if(order.promotionIds){
+          const orderPrice = await this.packageRepo.getTotalPriceByIds(rs, packageIds);
+          for(let i = 0; i < order.promotionIds.length; i++){
+            const promotionId = order.promotionIds[i];
+            const promotion = await this.promotionRepo.getPromotionById(rs, promotionId);
+              if(await this.promotionService.checkValidPromotions(promotion,packageIds,orderPrice) !== true){
+                throw new BadRequest(null, "Invalid promotion");
+              }
+          }
+          const createOrderPromises = order.promotionIds.map(promotionId => this.promotionRepo.createOrderPromotion(rs, {
+            orderId: newOrder.id,
+            promotionId 
+          }));
+          await Promise.all(createOrderPromises);
+        }
 
         return await this.orderRepo.getOrderById(rs, newOrder.id);
       });
