@@ -181,7 +181,17 @@ export class OrderService implements IOrderService {
           if (orderPackage.packageTypeId === PackageType.TimeAndMessage) {
             addMonthDuration += orderPackage.monthDuration;
           }
-          addMessageAmount += orderPackage.messageAmount * Package.MessageCountUnit;
+
+          if(addMessageAmount == PackageType.UnlimitedMessageAmount){
+            continue;
+          }
+
+          // is unlimited package
+          if(orderPackage.messageAmount === PackageType.UnlimitedMessageAmount){
+            addMessageAmount = PackageType.UnlimitedMessageAmount;
+          }else{
+            addMessageAmount += orderPackage.messageAmount * Package.MessageCountUnit;
+          }
         }
 
 
@@ -191,7 +201,9 @@ export class OrderService implements IOrderService {
           for(let i = 0; i < orderPromotions.length; i++){
             let orderPromotion = orderPromotions[i];
             addMonthDuration += orderPromotion.monthDuration ?? 0;
-            addMessageAmount += orderPromotion.messageAmount ?? 0;
+            if(addMessageAmount != PackageType.UnlimitedMessageAmount){
+              addMessageAmount += orderPromotion.messageAmount ?? 0;
+            }
             await this.promotionRepo.updateOrderPromotion(rs, {
               orderId,
               promotionId: orderPromotion.promotionId,
@@ -203,7 +215,12 @@ export class OrderService implements IOrderService {
         //update user plan
         await this.userRepo.updateUserPlan(rs, {
           userId: existingOrder.userId,
-          totalMessages: userPlan.totalMessages + addMessageAmount,
+          totalMessages: (
+              addMessageAmount == PackageType.UnlimitedMessageAmount 
+              ? PackageType.UnlimitedMessageAmount 
+              : (userPlan.totalMessages === PackageType.UnlimitedMessageAmount ? 0 : userPlan.totalMessages)
+               + addMessageAmount
+          ),
           validTo: moment(userPlan.validTo).add(addMonthDuration, 'months').toDate(),
         });
 
