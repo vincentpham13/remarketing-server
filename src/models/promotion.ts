@@ -26,9 +26,9 @@ export interface OrderPromotion {
 export interface InvalidPromotion {
   promotionCode: string;
   error: {
-    message: string,
-    code: number
-  }
+    message: string;
+    code: number;
+  };
 }
 
 export function instanceOfInvalidPromotion(data: any): data is InvalidPromotion { 

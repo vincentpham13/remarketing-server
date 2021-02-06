@@ -10,7 +10,7 @@ export interface IPromotionRepo {
   getPromotionByCode(rs: RequestScope, code: string): Promise<Promotion>;
   createPromotion(rs: RequestScope, user: Promotion): Promise<Promotion>;
   updatePromotion(rs: RequestScope, promotion: PromotionUpdate): Promise<Promotion>;
-  getValidOrderPromotionsByOrder(rs: RequestScope, order_id: number): Promise<OrderPromotion[]>;
+  getValidOrderPromotionsByOrder(rs: RequestScope, orderId: number): Promise<OrderPromotion[]>;
   createOrderPromotion(rs: RequestScope, orderPromotion: OrderPromotion): Promise<OrderPromotion>;
   updateOrderPromotion(rs: RequestScope, orderPromotion: OrderPromotion): Promise<OrderPromotion>;
 }
@@ -63,13 +63,13 @@ export class PromotionRepo implements IPromotionRepo {
     return updated;
   }
 
-  async getValidOrderPromotionsByOrder(rs: RequestScope, order_id: number): Promise<OrderPromotion[]>{
+  async getValidOrderPromotionsByOrder(rs: RequestScope, orderId: number): Promise<OrderPromotion[]>{
     rs.db.prepare();
 
     return await rs.db.queryBuilder
       .select(["po.*"])
       .from<OrderPromotion>("order_promotion as po")
-      .where("po.order_id", order_id)
+      .where("po.order_id", orderId)
       .whereNull("po.applied_at");
   }
 

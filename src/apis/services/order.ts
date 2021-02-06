@@ -12,7 +12,7 @@ import { IPackageRepo } from '../repositories/package';
 import { Package, PackageType } from '@/enums/package';
 import { IPromotionRepo } from '../repositories/promotion';
 import { IPromotionService } from './promotion';
-import { instanceOfInvalidPromotion, InvalidPromotion} from '@/models/promotion';
+import { instanceOfInvalidPromotion} from '@/models/promotion';
 
 export interface IOrderService {
   getAllOrder(rs: RequestScope): Promise<Order[]>;
@@ -202,7 +202,7 @@ export class OrderService implements IOrderService {
         const orderPromotions = await this.promotionRepo.getValidOrderPromotionsByOrder(rs,orderId);
         if(orderPromotions){
           for(let i = 0; i < orderPromotions.length; i++){
-            let orderPromotion = orderPromotions[i];
+            const orderPromotion = orderPromotions[i];
             addMonthDuration += orderPromotion.monthDuration ?? 0;
             if(addMessageAmount != PackageType.UnlimitedMessageAmount){
               addMessageAmount += orderPromotion.messageAmount ?? 0;

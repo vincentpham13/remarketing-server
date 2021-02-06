@@ -34,9 +34,9 @@ export class PromotionService implements IPromotionService {
   }
 
   checkValidPromotions(promotions: Promotion[], packageIds?: number[], orderPrice?: number): InvalidPromotion[] | Promotion[] {
-    let invalidPromotions = Array<InvalidPromotion>();
+    const invalidPromotions = Array<InvalidPromotion>();
     for (let i = 0; i < promotions.length; i++) {
-      let promotion = promotions[i];
+      const promotion = promotions[i];
       if (promotion.validTo < new Date()) {
         invalidPromotions.push({
           promotionCode: promotion.code,
