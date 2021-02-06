@@ -10,6 +10,7 @@ import { CampaignStatus } from '@/enums/campaignStatus';
 import { IFanPageRepo } from '../repositories/fanpage';
 import { compare } from 'bcrypt';
 import { Member } from '@/models/fanpage';
+import { PackageType } from '@/enums/package';
 
 
 export interface ICampaignService {
@@ -90,7 +91,8 @@ export class CampaignService implements ICampaignService {
       const members = await this.campaignRepo.getCampaignMembers(rs, campaignId);
 
       // check if user is enable to send such an amount messages
-      if (members.length > userPlan.totalMessages) {
+      if (userPlan.totalMessages !== PackageType.UnlimitedMessageAmount 
+            && members.length > userPlan.totalMessages) {
         throw new InternalServerError(null, "Your account run out of budget")
       }
 
@@ -127,10 +129,11 @@ export class CampaignService implements ICampaignService {
           updateCampaign["status"] = CampaignStatus.Completed;
         }
 
-        const { successMessages } = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
+        const { successMessages, totalMessages } = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
         await this.userRepo.updateUserPlan(rs, {
           userId: rs.identity.getID(),
           "successMessages": successMessages + success,
+          "totalMessages": totalMessages != PackageType.UnlimitedMessageAmount ? totalMessages - success : totalMessages
         });
 
         const updatedCampaign = await this.campaignRepo.update(rs, updateCampaign);
