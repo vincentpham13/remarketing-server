@@ -223,7 +223,8 @@ export class OrderService implements IOrderService {
           ),
           successMessages: (addMessageAmount !== PackageType.UnlimitedMessageAmount &&
           userPlan.totalMessages === PackageType.UnlimitedMessageAmount) 
-          ? 0 : userPlan.successMessages,
+          ? 0 
+          : userPlan.successMessages,
           validTo: moment(userPlan.validTo).add(addMonthDuration, 'months').toDate(),
         });
 
