@@ -199,7 +199,6 @@ export class OrderService implements IOrderService {
           }else{
             addMessageAmount += (orderPackage.messageAmount ?? 0) * Package.MessageCountUnit;
           }
-          console.log(addMessageAmount,addMonthDuration);
 
           await this.packageRepo.updateOrderPackage(rs, {
             orderId,

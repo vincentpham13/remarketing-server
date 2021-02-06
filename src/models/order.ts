@@ -42,5 +42,5 @@ export interface OrderPackage {
   monthDuration?: number;
   messageAmount?: number;
   packageTypeId?: number;
-  appliedAt?: Date
+  appliedAt?: Date;
 }
