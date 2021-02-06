@@ -47,6 +47,8 @@ export class UserRepo implements IUserRepo {
         "u.phone",
         "u.role_id",
         "u.job",
+        "u.city",
+        "u.company_name",
         "upl.total_messages",
         "upl.success_messages",
         "upl.valid_to",

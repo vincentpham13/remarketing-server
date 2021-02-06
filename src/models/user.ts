@@ -5,6 +5,8 @@ export interface User {
   phone?: string;
   password?: string;
   job?: string;
+  companyName?: string;
+  city?: string;
   roleId?: number;
   token?: string;
 }
@@ -27,6 +29,8 @@ export interface UserInfo {
   email?: string;
   phone?: string;
   job?: string;
+  companyName?: string;
+  city?: string;
   roleId?: number;
   packageId: number;
   packageName: string;
