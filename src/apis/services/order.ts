@@ -171,12 +171,14 @@ export class OrderService implements IOrderService {
 
         const userPlan = await this.userRepo.getUserPlanById(rs, existingOrder.userId);
         const orderPackages = await this.packageRepo.getPackagesByOrderId(rs, orderId);
+      
         if (!orderPackages || (orderPackages && !orderPackages.length)) {
           throw new InternalServerError(null, "Ordered packages are empty");
         }
 
         let addMonthDuration = 0;
         let addMessageAmount = 0;
+        let unlimitedPackageId = 0;
         for (const orderPackage of orderPackages) {
           if (orderPackage.packageTypeId === PackageType.TimeAndMessage) {
             addMonthDuration += orderPackage.monthDuration;
@@ -189,6 +191,7 @@ export class OrderService implements IOrderService {
           // is unlimited package
           if(orderPackage.messageAmount === PackageType.UnlimitedMessageAmount){
             addMessageAmount = PackageType.UnlimitedMessageAmount;
+            unlimitedPackageId = orderPackage.id;
           }else{
             addMessageAmount += orderPackage.messageAmount * Package.MessageCountUnit;
           }
@@ -215,16 +218,13 @@ export class OrderService implements IOrderService {
         //update user plan
         await this.userRepo.updateUserPlan(rs, {
           userId: existingOrder.userId,
+          packageId: unlimitedPackageId !== 0 ? unlimitedPackageId: userPlan.packageId,
           totalMessages: (
               addMessageAmount == PackageType.UnlimitedMessageAmount 
               ? PackageType.UnlimitedMessageAmount 
               : (userPlan.totalMessages === PackageType.UnlimitedMessageAmount ? 0 : userPlan.totalMessages)
                + addMessageAmount
           ),
-          successMessages: (addMessageAmount !== PackageType.UnlimitedMessageAmount &&
-          userPlan.totalMessages === PackageType.UnlimitedMessageAmount) 
-          ? 0 
-          : userPlan.successMessages,
           validTo: moment(userPlan.validTo).add(addMonthDuration, 'months').toDate(),
         });
 
