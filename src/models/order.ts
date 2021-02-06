@@ -39,4 +39,8 @@ export interface OrderUpdate {
 export interface OrderPackage {
   orderId: number;
   packageId: number;
+  monthDuration?: number;
+  messageAmount?: number;
+  packageTypeId?: number;
+  appliedAt?: Date
 }

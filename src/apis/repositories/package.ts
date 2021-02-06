@@ -1,16 +1,20 @@
 import { RequestScope } from '@/models/request';
 import { Package, PackageCreate } from '@/models/package';
 import { injectable } from 'inversify';
+import { Order, OrderPackage } from '@/models/order';
 
 export interface IPackageRepo {
   getAllPackage(rs: RequestScope): Promise<Package[]>;
   getPackageById(rs: RequestScope, packageId: number): Promise<Package>;
   getPackagesByIds(rs: RequestScope, packageIds: number[]): Promise<Package[]>;
   getPackagesByOrderId(rs: RequestScope, orderId: number): Promise<Package[]>;
+  getValidOrderPackagesByOrderId(rs: RequestScope, orderId: number): Promise<OrderPackage[]>;
   getTotalPriceByIds(rs: RequestScope, packageIds: number[]): Promise<number>;
   createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package>;
   updatePackage(rs: RequestScope, packageId: number, packagePlan: PackageCreate): Promise<Package>;
   removePackage(rs: RequestScope, packageId: number): Promise<any>;
+  updateOrderPackage(rs: RequestScope, orderPackage: OrderPackage): Promise<OrderPackage>;
+
 }
 
 @injectable()
@@ -65,6 +69,17 @@ export class PackageRepo implements IPackageRepo {
       .leftJoin("order_package as op", "op.package_id", "=", "package.id")
       .where("op.order_id", orderId)
   }
+  
+  async getValidOrderPackagesByOrderId(rs: RequestScope, orderId: number): Promise<OrderPackage[]> {
+    rs.db.prepare();
+
+    return await rs.db.queryBuilder
+      .select(["op.*", "p.package_type_id"])
+      .from<Package>("package as p")
+      .innerJoin("order_package as op", "op.package_id", "=", "p.id")
+      .where("op.order_id", orderId)
+      .whereNull('applied_at');
+  }
 
   async createPackage(rs: RequestScope, packagePlan: PackageCreate): Promise<Package> {
     rs.db.prepare();
@@ -95,5 +110,16 @@ export class PackageRepo implements IPackageRepo {
       .delete("*")
       .from<Package>("package")
       .where("id", packageId);
+  }
+
+  async updateOrderPackage(rs: RequestScope, orderPackage: OrderPackage): Promise<OrderPackage> {
+    rs.db.prepare();
+    const [updated] = await rs.db.queryBuilder
+      .update(orderPackage)
+      .into<OrderPackage>("order_package")
+      .where("package_id", orderPackage.packageId)
+      .where("order_id", orderPackage.orderId)
+      .returning("*");
+    return updated;
   }
 }

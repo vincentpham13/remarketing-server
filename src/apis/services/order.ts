@@ -81,20 +81,24 @@ export class OrderService implements IOrderService {
           throw new BadRequest(null, "Missing phone");
         }
 
-        const dbPackageIds = (await this.packageRepo.getAllPackage(rs)).map(p => p.id);
+        const dbPackages = (await this.packageRepo.getAllPackage(rs));
+        const dbPackageIds = dbPackages.map(p => p.id);
 
         if (!packageIds.every(packageId => dbPackageIds.includes(packageId))) {
           throw new BadRequest(null, "Provided packages are invalid");
         }
-
         //create order`
         const newOrder = await this.orderRepo.createOrder(rs, order);
 
+        const packages = await this.packageRepo.getPackagesByIds(rs,packageIds);
         //create order package
-        const createPackagePromises = packageIds.map(packageId => this.orderRepo.createOrderPackage(rs, {
+        const createPackagePromises = packages.map(packageItem => this.orderRepo.createOrderPackage(rs, {
           orderId: newOrder.id,
-          packageId
+          packageId: packageItem.id,
+          messageAmount: packageItem.messageAmount,
+          monthDuration: packageItem.monthDuration
         }));
+
         await Promise.all(createPackagePromises);
         if(promotionIds){
           const orderPrice = await this.packageRepo.getTotalPriceByIds(rs, packageIds);
@@ -170,7 +174,7 @@ export class OrderService implements IOrderService {
         }
 
         const userPlan = await this.userRepo.getUserPlanById(rs, existingOrder.userId);
-        const orderPackages = await this.packageRepo.getPackagesByOrderId(rs, orderId);
+        const orderPackages = await this.packageRepo.getValidOrderPackagesByOrderId(rs, orderId);
       
         if (!orderPackages || (orderPackages && !orderPackages.length)) {
           throw new InternalServerError(null, "Ordered packages are empty");
@@ -181,7 +185,7 @@ export class OrderService implements IOrderService {
         let unlimitedPackageId = 0;
         for (const orderPackage of orderPackages) {
           if (orderPackage.packageTypeId === PackageType.TimeAndMessage) {
-            addMonthDuration += orderPackage.monthDuration;
+            addMonthDuration += orderPackage.monthDuration ?? 0;
           }
 
           if(addMessageAmount == PackageType.UnlimitedMessageAmount){
@@ -191,10 +195,17 @@ export class OrderService implements IOrderService {
           // is unlimited package
           if(orderPackage.messageAmount === PackageType.UnlimitedMessageAmount){
             addMessageAmount = PackageType.UnlimitedMessageAmount;
-            unlimitedPackageId = orderPackage.id;
+            unlimitedPackageId = orderPackage.packageId;
           }else{
-            addMessageAmount += orderPackage.messageAmount * Package.MessageCountUnit;
+            addMessageAmount += (orderPackage.messageAmount ?? 0) * Package.MessageCountUnit;
           }
+          console.log(addMessageAmount,addMonthDuration);
+
+          await this.packageRepo.updateOrderPackage(rs, {
+            orderId,
+            packageId: orderPackage.packageId,
+            appliedAt: new Date()
+          });
         }
 
 
