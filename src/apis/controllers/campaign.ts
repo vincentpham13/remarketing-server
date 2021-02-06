@@ -45,7 +45,8 @@ class CampaignController implements interfaces.Controller {
         name: name,
         pageId: pageId,
         totalMessages: memberUIDs.length,
-        message
+        message,
+        createdAt: new Date()
       }, memberUIDs);
 
       res.status(200).json(response);

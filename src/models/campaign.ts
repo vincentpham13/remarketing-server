@@ -1,8 +1,11 @@
+import { FanPage } from "./fanpage";
+
 export interface Campaign {
   id?: number;
   name: string;
   creatorId?: string;
   pageId: string;
+  pageName?: string;
   createdAt?: Date;
   startedAt?: Date;
   message: string;
@@ -11,6 +14,7 @@ export interface Campaign {
   filteredBy?: string;
   status?: string;
   memberUids?: string[];
+  updatedAt?: Date;
 }
 
 export interface CampaignUpdate {

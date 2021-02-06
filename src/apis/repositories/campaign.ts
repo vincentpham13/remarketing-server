@@ -19,8 +19,9 @@ export class CampaignRepo implements ICampaignRepo {
   async getAllByCreatorId(rs: RequestScope, creatorId: string): Promise<Campaign[]> {
     rs.db.prepare();
     const campaigns = await rs.db.queryBuilder
-      .select(["campaign.*"])
-      .from<Campaign>("campaign")
+      .select(["c.*","p.name as page_name"])
+      .from<Campaign>("campaign as c")
+      .leftJoin("page as p", "p.id", "=", "c.page_id")
       .where("creator_id", creatorId);
     return campaigns;
   }

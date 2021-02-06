@@ -127,6 +127,7 @@ export class CampaignService implements ICampaignService {
         }
         if (newSuccessMessages === campaign.totalMessages) {
           updateCampaign["status"] = CampaignStatus.Completed;
+          updateCampaign['updated_at'] = new Date();
         }
 
         const { successMessages, totalMessages } = await this.userRepo.getUserInfoById(rs, rs.identity.getID());
@@ -158,6 +159,7 @@ export class CampaignService implements ICampaignService {
         const updateCampaign: CampaignUpdate = {
           id: campaignId,
           "status": CampaignStatus.Completed,
+          updatedAt: new Date()
         }
 
         const updatedCampaign = await this.campaignRepo.update(rs, updateCampaign);
