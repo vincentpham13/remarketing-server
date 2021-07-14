@@ -44,7 +44,7 @@
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.16",
     "knex-logger": "^0.1.0",
-    "knex-stringcase": "^1.4.3",
+    "knex-stringcase": "^1.4.5",
     "moment-timezone": "^0.5.32",
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.1",
