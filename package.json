@@ -42,7 +42,7 @@
     "inversify": "^5.0.5",
     "inversify-express-utils": "^6.3.2",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.21.16",
+    "knex": "^0.95.6",
     "knex-logger": "^0.1.0",
     "knex-stringcase": "^1.4.3",
     "moment-timezone": "^0.5.32",
