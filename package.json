@@ -40,7 +40,7 @@
     "express": "^4.17.1",
     "express-useragent": "^1.0.15",
     "inversify": "^5.0.5",
-    "inversify-express-utils": "^6.3.2",
+    "inversify-express-utils": "^6.4.7",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.16",
     "knex-logger": "^0.1.0",
